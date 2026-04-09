@@ -1,0 +1,39 @@
+{
+  "id": "bridge-assets",
+  "description": "Bridge the same asset from one chain to another chain using LI.FI routes.",
+  "when_to_use": [
+    "When the user asks to move an asset from chain A to chain B",
+    "When no token swap is required before bridging"
+  ],
+  "inputs": [
+    "from_chain",
+    "to_chain",
+    "token",
+    "amount",
+    "receiver"
+  ],
+  "constraints": {
+    "max_auto_usd": 3000,
+    "max_confirm_usd": 10000,
+    "max_slippage": 0.005
+  },
+  "allowed_actions": [
+    "lifi.quote",
+    "lifi.execute",
+    "lifi.status"
+  ],
+  "checkpoints": [
+    "before_execute"
+  ],
+  "steps": [
+    "plan_route",
+    "user_confirm",
+    "execute",
+    "wait_status"
+  ],
+  "fallbacks": [
+    "requote",
+    "switch_preference",
+    "plan_only"
+  ]
+}

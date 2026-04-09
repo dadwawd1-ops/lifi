@@ -1,0 +1,52 @@
+=== Vault Candidates ===
+1. WETH | protocol=aave-v3 | chain=1 | APY=n/a | TVL=n/a
+   address=0x4d5f47fa6a74757f35c14fd3a6ef8e3c9bc514e8
+2. USDC | protocol=aave-v3 | chain=1 | APY=n/a | TVL=n/a
+   address=0x98c23e9d8f34fefb1b7bd6a91b7ff122f4e16f5c
+3. USDE | protocol=aave-v3 | chain=1 | APY=n/a | TVL=n/a
+   address=0x4f5923fc5fd4a93352581b38b7cd26943012decf
+4. OSETH | protocol=aave-v3 | chain=1 | APY=n/a | TVL=n/a
+   address=0x927709711794f3de5ddbf1d176bee2d55ba13c21
+5. SENPYUSD | protocol=morpho-v1 | chain=1 | APY=n/a | TVL=n/a
+   address=0x19b3cd7032b8c062e8d44eacad661a0970dd8c55
+6. SENPYUSDMAIN | protocol=morpho-v1 | chain=1 | APY=n/a | TVL=n/a
+   address=0xb576765fb15505433af24fee2c0325895c559fb2
+7. PT-SUSDE-7MAY2026 | protocol=aave-v3 | chain=1 | APY=n/a | TVL=n/a
+   address=0x81b76ff3fed28ba0b4a5d4c76bd5c13bd0641d86
+8. RLUSD | protocol=aave-v3 | chain=1 | APY=n/a | TVL=n/a
+   address=0xfa82580c16a31d0c1bc632a36f82e83efef3eec0
+9. SENRLUSD | protocol=morpho-v1 | chain=1 | APY=n/a | TVL=n/a
+   address=0x71cb2f8038b2c5d65ddc740b2f3268890cd2a89c
+10. SENRLUSDV2 | protocol=morpho-v1 | chain=1 | APY=n/a | TVL=n/a
+   address=0x6dc58a0fdfc8d694e571dc59b9a52eeea780e6bf
+
+=== Vault Selection ===
+Source pages fetched: 3
+Candidate count: 168
+Vault name: WETH
+Protocol: aave-v3
+Chain: 1
+Vault address: 0x4d5f47fa6a74757f35c14fd3a6ef8e3c9bc514e8
+APY: n/a
+TVL: n/a
+isTransactional: true_or_unknown
+isRedeemable: true_or_unknown
+
+=== LI.FI Route Preview ===
+Route d1646ca6-1a28-4be6-b296-1cd39d038b36:0 uses OKX Dex Aggregator to move 1 USDC on chain 1 into an estimated 0.000454203405934516 aEthWETH on chain 1. The guaranteed minimum output is 0.000452840795716712 aEthWETH. The route has 3 steps: protocol via Integrator Fee, swap via OKX Dex Aggregator, protocol via Composer. Estimated gas cost is $1.1963, and explicit fees total $0.0025. Key flags: This route has 3 steps, so execution complexity is higher than a simple swap. This route likely requires token approval before execution. Route includes explicit protocol or bridge fees of about $0.0025.
+
+From: 1 USDC on chain 1
+To:   0.000454203405934516 aEthWETH on chain 1 (min 0.000452840795716712 aEthWETH)
+Tool: OKX Dex Aggregator
+Gas:  $1.1963
+Fees: $0.0025
+
+Steps:
+  1. protocol via Integrator Fee [1 -> 1]
+  2. swap via OKX Dex Aggregator [1 -> 1]
+  3. protocol via Composer [1 -> 1]
+
+Risk Flags:
+  - [info] This route has 3 steps, so execution complexity is higher than a simple swap.
+  - [warning] This route likely requires token approval before execution.
+  - [info] Route includes explicit protocol or bridge fees of about $0.0025.

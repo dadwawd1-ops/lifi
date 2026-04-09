@@ -1,0 +1,38 @@
+{
+  "id": "safe-large-transfer-review",
+  "description": "Review large transfer route and risk before execution. This skill does not execute transactions.",
+  "when_to_use": [
+    "When transfer size is large and user asks for risk review",
+    "When user asks if a route is safe before execution"
+  ],
+  "inputs": [
+    "from_chain",
+    "to_chain",
+    "token",
+    "amount",
+    "receiver"
+  ],
+  "constraints": {
+    "max_auto_usd": 0,
+    "max_confirm_usd": 0,
+    "max_slippage": 0.005
+  },
+  "allowed_actions": [
+    "lifi.quote",
+    "risk.check",
+    "address.screen"
+  ],
+  "checkpoints": [
+    "manual_decision_required"
+  ],
+  "steps": [
+    "plan_route",
+    "risk_review",
+    "address_review",
+    "manual_decision"
+  ],
+  "fallbacks": [
+    "do_not_execute",
+    "manual_escalation"
+  ]
+}

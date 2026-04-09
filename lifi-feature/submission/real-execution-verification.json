@@ -1,0 +1,15 @@
+{
+  "ok": false,
+  "checkedAt": "2026-04-08T16:52:02.452Z",
+  "request": {
+    "txHash": "0x你的真实交易哈希",
+    "fromChain": "42161",
+    "toChain": "8453",
+    "bridge": "across"
+  },
+  "error": {
+    "name": "LiFiApiError",
+    "message": "LI.FI request failed with status 400"
+  },
+  "note": "Verification request failed."
+}

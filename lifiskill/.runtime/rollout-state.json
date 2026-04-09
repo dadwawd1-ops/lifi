@@ -1,0 +1,152 @@
+{
+  "config": {
+    "phases": [
+      0,
+      5,
+      10,
+      25,
+      50,
+      100
+    ],
+    "knownSkills": [
+      "bridge-assets",
+      "swap-then-bridge",
+      "safe-large-transfer-review"
+    ],
+    "salt": "lifiskill-prod",
+    "skills": {
+      "bridge-assets": {
+        "phaseIndex": 5,
+        "forced": false
+      },
+      "swap-then-bridge": {
+        "phaseIndex": 5,
+        "forced": false
+      },
+      "safe-large-transfer-review": {
+        "phaseIndex": 5,
+        "forced": false
+      }
+    }
+  },
+  "lastGate": {
+    "pass": true,
+    "thresholds": {
+      "minTestPassRate": 1,
+      "requireZeroP0": true,
+      "requireZeroP1": true,
+      "minSkillE2ECoverage": 1,
+      "minConfirmationCoverage": 1,
+      "minSuccessRate7d": 0.97,
+      "maxStatusTimeoutRate7d": 0.01,
+      "maxP95CompletionMinutes7d": 8,
+      "minAuditCoverage": 1,
+      "minFallbackCoverage": 1
+    },
+    "summary": "Release gate passed (10/10)",
+    "checks": [
+      {
+        "id": "test-pass-rate",
+        "label": "Automated tests pass rate",
+        "pass": true,
+        "actual": 1,
+        "expected": ">= 1"
+      },
+      {
+        "id": "zero-p0",
+        "label": "No P0 defects",
+        "pass": true,
+        "actual": 0,
+        "expected": 0
+      },
+      {
+        "id": "zero-p1",
+        "label": "No P1 defects",
+        "pass": true,
+        "actual": 0,
+        "expected": 0
+      },
+      {
+        "id": "skill-e2e-coverage",
+        "label": "Core skill E2E coverage",
+        "pass": true,
+        "actual": 1,
+        "expected": ">= 1"
+      },
+      {
+        "id": "confirmation-coverage",
+        "label": "Pre-execution confirmation coverage",
+        "pass": true,
+        "actual": 1,
+        "expected": ">= 1"
+      },
+      {
+        "id": "success-rate-7d",
+        "label": "7-day success rate",
+        "pass": true,
+        "actual": 0.985,
+        "expected": ">= 0.97"
+      },
+      {
+        "id": "status-timeout-rate-7d",
+        "label": "7-day status timeout rate",
+        "pass": true,
+        "actual": 0.004,
+        "expected": "<= 0.01"
+      },
+      {
+        "id": "p95-completion-minutes-7d",
+        "label": "7-day P95 completion time (minutes)",
+        "pass": true,
+        "actual": 6.2,
+        "expected": "<= 8"
+      },
+      {
+        "id": "audit-coverage",
+        "label": "Audit field completeness coverage",
+        "pass": true,
+        "actual": 1,
+        "expected": ">= 1"
+      },
+      {
+        "id": "fallback-coverage",
+        "label": "Fallback coverage for key errors",
+        "pass": true,
+        "actual": 1,
+        "expected": ">= 1"
+      }
+    ],
+    "failedChecks": []
+  },
+  "lastMetrics": {
+    "tests": {
+      "total": 37,
+      "failed": 0
+    },
+    "quality": {
+      "p0Count": 0,
+      "p1Count": 0,
+      "confirmationCoverage": 1,
+      "auditCoverage": 1,
+      "fallbackCoverage": 1
+    },
+    "skills": {
+      "bridgeAssetsE2E": true,
+      "swapThenBridgeE2E": true,
+      "safeLargeTransferReviewE2E": true
+    },
+    "slos": {
+      "successRate7d": 0.985,
+      "statusTimeoutRate7d": 0.004,
+      "p95CompletionMinutes7d": 6.2
+    }
+  },
+  "lastPromotion": {
+    "attempted": true,
+    "promoted": false,
+    "promotedSkills": [],
+    "blocked": false,
+    "step": 1
+  },
+  "updatedAt": "2026-04-08T15:36:17.228Z"
+}

@@ -1,0 +1,121 @@
+{
+  "command": "vaults list",
+  "options": {
+    "chainId": 1,
+    "protocol": null,
+    "sortBy": "apy",
+    "requireTransactional": true,
+    "requireRedeemable": false
+  },
+  "pagination": {
+    "pageCount": 3,
+    "hasMore": true,
+    "nextCursor": "1-0xe89371eaaac6d46d4c3ed23453241987916224fc"
+  },
+  "counts": {
+    "rawVaults": 300,
+    "candidates": 167
+  },
+  "candidates": [
+    {
+      "name": "WETH",
+      "protocol": "aave-v3",
+      "chainId": 1,
+      "address": "0x4d5f47fa6a74757f35c14fd3a6ef8e3c9bc514e8",
+      "apy": null,
+      "tvl": null,
+      "isTransactional": true,
+      "isRedeemable": true
+    },
+    {
+      "name": "LBTC",
+      "protocol": "aave-v3",
+      "chainId": 1,
+      "address": "0x65906988adee75306021c417a1a3458040239602",
+      "apy": null,
+      "tvl": null,
+      "isTransactional": true,
+      "isRedeemable": true
+    },
+    {
+      "name": "MHYPERBTC",
+      "protocol": "pendle",
+      "chainId": 1,
+      "address": "0x450e39fe80936c502c7c0d9d032c46c9a8b040b3",
+      "apy": null,
+      "tvl": null,
+      "isTransactional": true,
+      "isRedeemable": true
+    },
+    {
+      "name": "SYRUPUSDT",
+      "protocol": "aave-v3",
+      "chainId": 1,
+      "address": "0x24ab03a9a5bc2c49e5523e8d915a3536ac38b91d",
+      "apy": null,
+      "tvl": null,
+      "isTransactional": true,
+      "isRedeemable": true
+    },
+    {
+      "name": "VBGTWETH",
+      "protocol": "morpho-v1",
+      "chainId": 1,
+      "address": "0x31a5684983eee865d943a696aac155363ba024f9",
+      "apy": null,
+      "tvl": null,
+      "isTransactional": true,
+      "isRedeemable": true
+    },
+    {
+      "name": "WSTETH",
+      "protocol": "euler-v2",
+      "chainId": 1,
+      "address": "0xbc4b4ac47582c3e38ce5940b80da65401f4628f1",
+      "apy": null,
+      "tvl": null,
+      "isTransactional": true,
+      "isRedeemable": true
+    },
+    {
+      "name": "TBTC",
+      "protocol": "aave-v3",
+      "chainId": 1,
+      "address": "0x10ac93971cdb1f5c778144084242374473c350da",
+      "apy": null,
+      "tvl": null,
+      "isTransactional": true,
+      "isRedeemable": true
+    },
+    {
+      "name": "AVGUSDCCONS",
+      "protocol": "morpho-v1",
+      "chainId": 1,
+      "address": "0xebbae8cfabb0092d5b32f00ebee0c8139d24ddcd",
+      "apy": null,
+      "tvl": null,
+      "isTransactional": true,
+      "isRedeemable": true
+    },
+    {
+      "name": "PYUSD",
+      "protocol": "euler-v2",
+      "chainId": 1,
+      "address": "0xba98fc35c9dfd69178ad5dce9fa29c64554783b5",
+      "apy": null,
+      "tvl": null,
+      "isTransactional": true,
+      "isRedeemable": true
+    },
+    {
+      "name": "RSWETH",
+      "protocol": "pendle",
+      "chainId": 1,
+      "address": "0xce789b855ff263d86cee15d8bf5eba9ba6e2d066",
+      "apy": null,
+      "tvl": null,
+      "isTransactional": true,
+      "isRedeemable": true
+    }
+  ]
+}

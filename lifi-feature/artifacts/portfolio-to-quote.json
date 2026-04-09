@@ -1,0 +1,23 @@
+{
+  "command": "portfolio to-quote",
+  "status": "no_source_position",
+  "message": "No source position found for portfolio to-quote.",
+  "portfolio": {
+    "address": "0x1111111111111111111111111111111111111111",
+    "filters": {
+      "chainId": null,
+      "protocol": null,
+      "positionRank": 1,
+      "positionVault": null
+    },
+    "counts": {
+      "rawCount": 0,
+      "filteredCount": 0
+    },
+    "pagination": {
+      "pageCount": 1,
+      "hasMore": false,
+      "nextCursor": null
+    }
+  }
+}

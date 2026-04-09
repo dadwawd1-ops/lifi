@@ -1,0 +1,41 @@
+{
+  "id": "swap-then-bridge",
+  "description": "Swap from one token to another and then bridge to destination chain.",
+  "when_to_use": [
+    "When user needs token conversion before bridging",
+    "When source and destination token differ"
+  ],
+  "inputs": [
+    "from_chain",
+    "to_chain",
+    "from_token",
+    "to_token",
+    "amount",
+    "receiver"
+  ],
+  "constraints": {
+    "max_auto_usd": 3000,
+    "max_confirm_usd": 10000,
+    "max_slippage": 0.005
+  },
+  "allowed_actions": [
+    "lifi.quote",
+    "lifi.execute",
+    "lifi.status"
+  ],
+  "checkpoints": [
+    "before_execute",
+    "high_slippage"
+  ],
+  "steps": [
+    "plan_route",
+    "user_confirm",
+    "execute",
+    "wait_status"
+  ],
+  "fallbacks": [
+    "requote",
+    "reduce_amount",
+    "plan_only"
+  ]
+}

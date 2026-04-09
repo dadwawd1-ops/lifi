@@ -1,0 +1,16 @@
+{
+  "name": "lifiskill",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node ./tests/run-tests.mjs",
+    "demo:quote": "node ./examples/quote-preview.mjs",
+    "demo:confirm-flow": "node ./examples/demo-confirm-flow.mjs",
+    "demo:release-gate": "node ./examples/release-gate-check.mjs",
+    "demo:gray-release": "node ./examples/gray-release-rollout.mjs",
+    "demo:rollout-manager": "node ./examples/rollout-manager-run.mjs",
+    "demo:workflow-runtime": "node ./examples/workflow-runtime-run.mjs",
+    "serve:runtime": "node ./examples/runtime-server-start.mjs"
+  }
+}

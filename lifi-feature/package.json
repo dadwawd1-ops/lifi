@@ -1,0 +1,14 @@
+{
+  "name": "lifi-feature-prototype",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Original LI.FI route preview and status summary prototype",
+  "scripts": {
+    "preview:route": "node ./examples/preview-route.mjs",
+    "preview:status": "node ./examples/preview-status.mjs",
+    "preview:earn-quote": "node ./examples/earn-vault-to-quote-preview.mjs",
+    "lifi:cli": "node ./examples/lifi-earn-cli.mjs",
+    "verify:execution": "node ./examples/verify-real-execution.mjs"
+  }
+}
