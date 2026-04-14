@@ -90,6 +90,7 @@ export class LiFiEarnApiError extends Error {
 export class EarnClient {
   constructor(options = {}) {
     this.baseUrl = options.baseUrl ?? 'https://earn.li.fi'
+    this.apiKey = options.apiKey
     this.fetchImpl = options.fetchImpl ?? globalThis.fetch
 
     if (typeof this.fetchImpl !== 'function') {
@@ -99,10 +100,17 @@ export class EarnClient {
     }
   }
 
-  createHeaders() {
-    return {
+  createHeaders(extraHeaders = {}) {
+    const headers = {
       Accept: 'application/json',
+      ...extraHeaders,
     }
+
+    if (this.apiKey) {
+      headers['x-lifi-api-key'] = this.apiKey
+    }
+
+    return headers
   }
 
   async get(path, params = {}) {

@@ -1,8 +1,10 @@
+import { Contract } from 'ethers'
 import { Decision, LifecycleState } from './types.js'
 import { evaluatePolicy } from './policy-engine.js'
 import { ensureApproval } from './approval.js'
-import { summarizeQuote } from './route-summary.js'
 import { createAudit, pushAuditEvent, finalizeAudit } from './audit.js'
+import { readWithFallback, sendTransaction } from './signer.js'
+import { depositToVault } from './vault-deposit.js'
 import {
   resolveFeatureFlags,
   assertSkillEnabled,
@@ -17,9 +19,74 @@ import {
   withRequoteLoop,
 } from './workflow-helpers.js'
 
+function resolveDepositAmount({ execution, statusPayload, quote }) {
+  const candidates = [
+    execution?.outputAmount,
+    execution?.toAmount,
+    execution?.amountOut,
+    statusPayload?.receiving?.amount,
+    quote?.estimate?.toAmount,
+  ]
+
+  for (const candidate of candidates) {
+    if (candidate !== undefined && candidate !== null && String(candidate).trim() !== '') {
+      return String(candidate)
+    }
+  }
+
+  return null
+}
+
+const ERC20_BALANCE_OF_ABI = [
+  'function balanceOf(address) view returns (uint256)',
+]
+
+function toAmountBigInt(value, label) {
+  try {
+    return BigInt(value)
+  } catch {
+    throw new Error(`${label} is not a valid integer amount`)
+  }
+}
+
+function applyDepositSafetyBuffer(actualBalance) {
+  if (actualBalance <= 0n) {
+    return actualBalance
+  }
+
+  const safeAmount = (actualBalance * 995n) / 1000n
+  return safeAmount > 0n ? safeAmount : actualBalance
+}
+
+async function readActualDepositBalance({
+  chainId,
+  tokenAddress,
+  walletAddress,
+  providerContexts,
+  logger,
+}) {
+  const { value, url } = await readWithFallback(
+    async provider => {
+      const erc20 = new Contract(tokenAddress, ERC20_BALANCE_OF_ABI, provider)
+      return erc20.balanceOf(walletAddress)
+    },
+    {
+      chainId,
+      providerContexts,
+      logger,
+    },
+  )
+
+  return {
+    actualBalance: toAmountBigInt(value, 'actualBalance'),
+    rpcUrl: url,
+  }
+}
+
 export async function runSwapThenBridgeWorkflow(params) {
   let operationKeyForError = null
   let registryForError = params?.operationRegistry ?? createOperationRegistry()
+  let audit = null
   try {
     const {
       skill,
@@ -33,9 +100,14 @@ export async function runSwapThenBridgeWorkflow(params) {
       pollingConfig,
       operationRegistry,
       quotePolicy,
+      depositExecutor,
+      balanceReader,
     } = params
 
-    const validationErrors = validateWorkflowInput(skill?.id ?? 'swap-then-bridge', input)
+    const validationErrors = validateWorkflowInput(
+      skill?.id ?? 'swap-then-bridge',
+      input,
+    )
     if (validationErrors.length > 0) {
       const err = new Error(validationErrors.join('; '))
       err.code = ErrorCode.INVALID_INPUT
@@ -53,7 +125,7 @@ export async function runSwapThenBridgeWorkflow(params) {
     const registry = operationRegistry ?? createOperationRegistry()
     registryForError = registry
 
-    const audit = createAudit({
+    audit = createAudit({
       skillId: skill?.id ?? 'swap-then-bridge',
       operationId: input.operationId ?? null,
       traceId: input.traceId ?? null,
@@ -64,16 +136,24 @@ export async function runSwapThenBridgeWorkflow(params) {
     let state = LifecycleState.PLANNED
     pushAuditEvent(audit, state, 'workflow started')
 
+    const selectedVault = input.selectedVault ?? null
+    const depositTokenAddress =
+      selectedVault?.depositToken?.address ?? input.toToken
+    const toAddress = input.fromAddress ?? input.receiver
+    console.log('ENABLE DEPOSIT:', input.enableDeposit)
+    console.log('TO ADDRESS:', toAddress)
     const quoteInput = {
       fromChain: input.fromChain,
       toChain: input.toChain,
       fromToken: input.fromToken,
-      toToken: input.toToken,
+      toToken: depositTokenAddress,
       fromAmount: input.amount,
       fromAddress: input.fromAddress,
-      toAddress: input.receiver,
+      toAddress,
       slippage: input.slippage,
     }
+
+    console.log('QUOTE PARAMS:', quoteInput)
 
     const {
       quoteResult,
@@ -123,7 +203,12 @@ export async function runSwapThenBridgeWorkflow(params) {
         code: ErrorCode.POLICY_DENY,
         message: policyDecision.reason,
       })
-      return { state, quote: quoteResult.quote, quoteSummary, audit }
+      return {
+        state,
+        quote: quoteResult.quote,
+        quoteSummary,
+        audit,
+      }
     }
 
     if (degradedToPlanOnly) {
@@ -180,7 +265,11 @@ export async function runSwapThenBridgeWorkflow(params) {
     })
 
     if (idempotency.decision === 'return_completed') {
-      pushAuditEvent(audit, LifecycleState.COMPLETED, 'idempotent replay: completed result reused')
+      pushAuditEvent(
+        audit,
+        LifecycleState.COMPLETED,
+        'idempotent replay: completed result reused',
+      )
       finalizeAudit(audit, LifecycleState.COMPLETED)
       return {
         state: LifecycleState.COMPLETED,
@@ -193,7 +282,11 @@ export async function runSwapThenBridgeWorkflow(params) {
     }
 
     if (idempotency.decision === 'return_in_progress') {
-      pushAuditEvent(audit, LifecycleState.POLLING, 'idempotent replay: operation in progress')
+      pushAuditEvent(
+        audit,
+        LifecycleState.POLLING,
+        'idempotent replay: operation in progress',
+      )
       finalizeAudit(audit, LifecycleState.POLLING)
       return {
         state: LifecycleState.POLLING,
@@ -206,7 +299,11 @@ export async function runSwapThenBridgeWorkflow(params) {
     }
 
     if (idempotency.decision === 'return_failed') {
-      pushAuditEvent(audit, LifecycleState.FAILED, 'idempotent replay: non-retryable failed result reused')
+      pushAuditEvent(
+        audit,
+        LifecycleState.FAILED,
+        'idempotent replay: non-retryable failed result reused',
+      )
       finalizeAudit(audit, LifecycleState.FAILED, {
         code: idempotency.record?.errorCode ?? ErrorCode.WORKFLOW_ERROR,
         message: idempotency.record?.errorMessage ?? 'Previously failed operation',
@@ -248,7 +345,8 @@ export async function runSwapThenBridgeWorkflow(params) {
       null
     if (spenderAddress && approvalProvider) {
       const approval = await ensureApproval({
-        tokenAddress: quoteResult.quote?.action?.fromToken?.address ?? input.fromTokenAddress,
+        tokenAddress:
+          quoteResult.quote?.action?.fromToken?.address ?? input.fromTokenAddress,
         ownerAddress: input.fromAddress,
         spenderAddress,
         requiredAmount: quoteResult.quote?.action?.fromAmount ?? input.amount,
@@ -267,11 +365,57 @@ export async function runSwapThenBridgeWorkflow(params) {
     const execution = await executeTool.run({
       quote: quoteResult.quote,
       fromAddress: input.fromAddress,
-      toAddress: input.receiver,
+      toAddress,
       operationId: input.operationId,
     })
 
     audit.txHash = execution?.txHash ?? execution?.transactionHash ?? null
+    if (!audit.txHash && execution?.requiresSigner) {
+      console.log('⚠️ Requires signer, sending transaction...')
+
+      try {
+        const txRequest =
+          execution?.transactionRequest ||
+          execution?.tx ||
+          execution?.step?.transactionRequest
+
+        if (!txRequest) {
+          throw new Error('No transactionRequest found')
+        }
+
+        let txMeta = null
+        const txHash = await sendTransaction(txRequest, {
+          chainId: input.fromChain,
+          onResult(meta) {
+            txMeta = meta
+          },
+        })
+        execution.txHash = txHash
+        execution.broadcasted = true
+        execution.mode = 'executed'
+        execution.requiresSigner = false
+        execution.rpc = txMeta
+        audit.txHash = txHash
+        audit.nonceRpcUrl = txMeta?.nonceRpcUrl ?? null
+        audit.broadcastRpcUrl = txMeta?.broadcastRpcUrl ?? null
+        audit.receiptRpcUrl = txMeta?.receiptRpcUrl ?? null
+        pushAuditEvent(audit, state, 'transaction broadcasted via signer')
+      } catch (error) {
+        console.error('❌ FULL ERROR:', error)
+        console.error('❌ MESSAGE:', error.message)
+
+        state = LifecycleState.FAILED
+        pushAuditEvent(audit, state, `transaction failed: ${error.message}`)
+        finalizeAudit(audit, state)
+
+        return {
+          state,
+          error: error.message,
+          audit,
+        }
+      }
+    }
+
     state = LifecycleState.POLLING
     registry.update({
       key: operationKeyForError,
@@ -288,7 +432,11 @@ export async function runSwapThenBridgeWorkflow(params) {
         toChain: input.toChain,
       },
       onTick: tick => {
-        pushAuditEvent(audit, LifecycleState.POLLING, `status ${tick.externalStatus}`)
+        pushAuditEvent(
+          audit,
+          LifecycleState.POLLING,
+          `status ${tick.externalStatus}`,
+        )
       },
       config: pollingConfig,
     })
@@ -305,21 +453,131 @@ export async function runSwapThenBridgeWorkflow(params) {
       key: operationKeyForError,
       state,
       result: execution,
-      errorCode: state === LifecycleState.FAILED ? ErrorCode.WORKFLOW_ERROR : null,
-      errorMessage: state === LifecycleState.FAILED ? 'Execution status resolved to failed' : null,
+      errorCode:
+        state === LifecycleState.FAILED ? ErrorCode.WORKFLOW_ERROR : null,
+      errorMessage:
+        state === LifecycleState.FAILED
+          ? 'Execution status resolved to failed'
+          : null,
     })
+
+    let deposit = null
+    const swapTxHash =
+      audit.txHash ?? execution?.txHash ?? execution?.transactionHash ?? null
+    if (
+      state === LifecycleState.COMPLETED &&
+      input.enableDeposit !== false &&
+      selectedVault?.address &&
+      selectedVault?.depositToken?.address
+    ) {
+      const estimatedDepositAmount = resolveDepositAmount({
+        execution,
+        statusPayload: pollResult.payload,
+        quote: quoteResult.quote,
+      })
+
+      if (!estimatedDepositAmount) {
+        throw new Error('Unable to determine vault deposit amount')
+      }
+
+      const walletAddress = input.fromAddress ?? input.receiver
+      const targetChainId = selectedVault.chainId ?? input.toChain
+      const readBalance =
+        balanceReader ??
+        (async balanceInput => readActualDepositBalance(balanceInput))
+      const { actualBalance, rpcUrl: balanceRpcUrl } = await readBalance({
+        chainId: targetChainId,
+        tokenAddress: selectedVault.depositToken.address,
+        walletAddress,
+      })
+
+      console.log('💰 Actual deposit token balance:', actualBalance.toString())
+
+      if (balanceRpcUrl) {
+        console.log('BALANCE RPC:', balanceRpcUrl)
+      }
+
+      if (actualBalance <= 0n) {
+        throw new Error('No destination token balance available for vault deposit')
+      }
+
+      const safeDepositAmount = applyDepositSafetyBuffer(actualBalance)
+      if (safeDepositAmount <= 0n) {
+        throw new Error('Safe vault deposit amount resolved to zero')
+      }
+
+      console.log('📥 Starting vault deposit...')
+      console.log('VAULT:', selectedVault.address)
+      console.log('DEPOSIT TOKEN:', selectedVault.depositToken.address)
+      console.log('📥 Deposit amount:', safeDepositAmount.toString())
+      pushAuditEvent(audit, state, 'starting vault deposit')
+      pushAuditEvent(
+        audit,
+        state,
+        `deposit_amount=${safeDepositAmount.toString()}`,
+      )
+      const depositFn = depositExecutor ?? depositToVault
+      const depositResult = await depositFn({
+        chainId: targetChainId,
+        vaultAddress: selectedVault.address,
+        tokenAddress: selectedVault.depositToken.address,
+        amount: safeDepositAmount.toString(),
+        receiverAddress: walletAddress,
+      })
+      deposit = {
+        txHash: depositResult.depositTxHash ?? depositResult.txHash,
+        approveTxHash: depositResult.approveTxHash ?? null,
+        vaultAddress: selectedVault.address,
+        tokenAddress: selectedVault.depositToken.address,
+        amount: safeDepositAmount.toString(),
+        actualBalance: actualBalance.toString(),
+        estimatedAmount: String(estimatedDepositAmount),
+        balanceRpcUrl: balanceRpcUrl ?? null,
+        approve: depositResult.approve ?? null,
+        deposit: depositResult.deposit ?? null,
+      }
+      audit.depositApprovalTxHash = deposit.approveTxHash
+      audit.depositTxHash = deposit.txHash
+      audit.depositApprovalRpcUrl =
+        depositResult.approve?.receiptRpcUrl ??
+        depositResult.approve?.broadcastRpcUrl ??
+        null
+      audit.depositRpcUrl =
+        depositResult.deposit?.receiptRpcUrl ??
+        depositResult.deposit?.broadcastRpcUrl ??
+        null
+      pushAuditEvent(audit, state, `vault deposit confirmed: ${deposit.txHash}`)
+    }
+
     finalizeAudit(audit, state)
     return {
       state,
       quote: quoteResult.quote,
       quoteSummary,
+      swapTxHash,
+      depositTxHash: deposit?.txHash ?? null,
       execution,
+      deposit,
       status: pollResult.payload,
       audit,
     }
   } catch (error) {
     const mapped = classifyError(error)
     const failedState = LifecycleState.FAILED
+    if (audit) {
+      audit.depositApprovalTxHash =
+        error?.approveTxHash ?? audit.depositApprovalTxHash ?? null
+      audit.depositApprovalRpcUrl =
+        error?.approveMeta?.receiptRpcUrl ??
+        error?.approveMeta?.broadcastRpcUrl ??
+        audit.depositApprovalRpcUrl ??
+        null
+      audit.depositRpcUrl =
+        error?.depositMeta?.receiptRpcUrl ??
+        error?.depositMeta?.broadcastRpcUrl ??
+        audit.depositRpcUrl ??
+        null
+    }
     const fallbackRouteFingerprint =
       params?.input?.operationId && params?.input?.fromAddress
         ? `${params?.input?.fromChain ?? ''}:${params?.input?.toChain ?? ''}:${params?.input?.fromToken ?? ''}:${params?.input?.toToken ?? ''}:${params?.input?.amount ?? ''}`
@@ -338,13 +596,15 @@ export async function runSwapThenBridgeWorkflow(params) {
       errorCode: mapped.code,
       errorMessage: mapped.message,
     })
-    const fallbackAudit = createAudit({
-      skillId: params?.skill?.id ?? 'swap-then-bridge',
-      operationId: params?.input?.operationId ?? null,
-      traceId: params?.input?.traceId ?? null,
-      walletAddress: params?.input?.fromAddress ?? null,
-      receiver: params?.input?.receiver ?? null,
-    })
+    const fallbackAudit =
+      audit ??
+      createAudit({
+        skillId: params?.skill?.id ?? 'swap-then-bridge',
+        operationId: params?.input?.operationId ?? null,
+        traceId: params?.input?.traceId ?? null,
+        walletAddress: params?.input?.fromAddress ?? null,
+        receiver: params?.input?.receiver ?? null,
+      })
     pushAuditEvent(fallbackAudit, failedState, mapped.message)
     finalizeAudit(fallbackAudit, failedState, {
       code: mapped.code,

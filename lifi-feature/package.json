@@ -10,5 +10,8 @@
     "preview:earn-quote": "node ./examples/earn-vault-to-quote-preview.mjs",
     "lifi:cli": "node ./examples/lifi-earn-cli.mjs",
     "verify:execution": "node ./examples/verify-real-execution.mjs"
+  },
+  "dependencies": {
+    "ethers": "^6.16.0"
   }
 }

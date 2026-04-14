@@ -12,5 +12,8 @@
     "demo:rollout-manager": "node ./examples/rollout-manager-run.mjs",
     "demo:workflow-runtime": "node ./examples/workflow-runtime-run.mjs",
     "serve:runtime": "node ./examples/runtime-server-start.mjs"
+  },
+  "dependencies": {
+    "ethers": "^6.16.0"
   }
 }

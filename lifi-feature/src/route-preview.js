@@ -3,6 +3,11 @@ function toNumber(value) {
   return Number.isFinite(n) ? n : 0
 }
 
+function isFiniteNumber(value) {
+  const n = Number(value)
+  return Number.isFinite(n)
+}
+
 function formatUsd(value) {
   const n = toNumber(value)
   if (n === 0) {
@@ -142,6 +147,14 @@ export function summarizeQuote(quote) {
 
   const fromToken = action.fromToken ?? {}
   const toToken = action.toToken ?? {}
+  const fromAmountDecimal = toNumber(
+    toDecimalString(action.fromAmount, fromToken.decimals ?? 18),
+  )
+  const toAmountDecimal = toNumber(
+    toDecimalString(estimate.toAmount, toToken.decimals ?? 18),
+  )
+  const fromPriceKnown = isFiniteNumber(fromToken.priceUSD)
+  const toPriceKnown = isFiniteNumber(toToken.priceUSD)
 
   const gasCosts = estimate.gasCosts ?? []
   const feeCosts = estimate.feeCosts ?? []
@@ -155,18 +168,27 @@ export function summarizeQuote(quote) {
     from: {
       chainId: action.fromChainId,
       tokenSymbol: fromToken.symbol,
+      symbol: fromToken.symbol ?? null,
       tokenAddress: fromToken.address,
       amount: formatTokenAmount(
         action.fromAmount,
         fromToken.decimals ?? 18,
         fromToken.symbol ?? '',
       ),
+      amountUsd: fromAmountDecimal * toNumber(fromToken.priceUSD),
+      amountUsdKnown: fromPriceKnown,
     },
     to: {
       chainId: action.toChainId,
       tokenSymbol: toToken.symbol,
+      symbol: toToken.symbol ?? null,
       tokenAddress: toToken.address,
       estimatedAmount: formatTokenAmount(
+        estimate.toAmount,
+        toToken.decimals ?? 18,
+        toToken.symbol ?? '',
+      ),
+      estimated: formatTokenAmount(
         estimate.toAmount,
         toToken.decimals ?? 18,
         toToken.symbol ?? '',
@@ -176,6 +198,13 @@ export function summarizeQuote(quote) {
         toToken.decimals ?? 18,
         toToken.symbol ?? '',
       ),
+      minimum: formatTokenAmount(
+        estimate.toAmountMin,
+        toToken.decimals ?? 18,
+        toToken.symbol ?? '',
+      ),
+      estimatedUsd: toAmountDecimal * toNumber(toToken.priceUSD),
+      estimatedUsdKnown: toPriceKnown,
     },
     costs: {
       gasUsd: formatUsd(totalGasUsd),
@@ -208,6 +237,7 @@ export function summarizeQuote(quote) {
       toToken: step?.action?.toToken?.symbol ?? null,
     })),
     riskFlags: buildRiskFlags(quote),
+    slippage: toNumber(action.slippage),
   }
 
   summary.narrative = buildNarrative(summary)

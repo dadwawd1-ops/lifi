@@ -1,8 +1,9 @@
 import { Decision, LifecycleState } from './types.js'
 import { evaluatePolicy } from './policy-engine.js'
 import { ensureApproval } from './approval.js'
-import { summarizeQuote } from './route-summary.js'
 import { createAudit, pushAuditEvent, finalizeAudit } from './audit.js'
+import { sendTransaction } from './signer.js'
+import { depositToVault } from './vault-deposit.js'
 import {
   resolveFeatureFlags,
   assertSkillEnabled,
@@ -17,6 +18,24 @@ import {
   withRequoteLoop,
 } from './workflow-helpers.js'
 
+function resolveDepositAmount({ execution, statusPayload, quote }) {
+  const candidates = [
+    execution?.outputAmount,
+    execution?.toAmount,
+    execution?.amountOut,
+    statusPayload?.receiving?.amount,
+    quote?.estimate?.toAmount,
+  ]
+
+  for (const candidate of candidates) {
+    if (candidate !== undefined && candidate !== null && String(candidate).trim() !== '') {
+      return String(candidate)
+    }
+  }
+
+  return null
+}
+
 /**
  * Minimal executable bridge workflow for Week 2:
  * quote -> policy -> optional confirm -> approval -> execute -> status
@@ -24,6 +43,7 @@ import {
 export async function runBridgeAssetsWorkflow(params) {
   let operationKeyForError = null
   let registryForError = params?.operationRegistry ?? createOperationRegistry()
+  let audit = null
   try {
     const {
       skill,
@@ -37,9 +57,13 @@ export async function runBridgeAssetsWorkflow(params) {
       pollingConfig,
       operationRegistry,
       quotePolicy,
+      depositExecutor,
     } = params
 
-    const validationErrors = validateWorkflowInput(skill?.id ?? 'bridge-assets', input)
+    const validationErrors = validateWorkflowInput(
+      skill?.id ?? 'bridge-assets',
+      input,
+    )
     if (validationErrors.length > 0) {
       const err = new Error(validationErrors.join('; '))
       err.code = ErrorCode.INVALID_INPUT
@@ -57,7 +81,7 @@ export async function runBridgeAssetsWorkflow(params) {
     const registry = operationRegistry ?? createOperationRegistry()
     registryForError = registry
 
-    const audit = createAudit({
+    audit = createAudit({
       skillId: skill?.id ?? 'bridge-assets',
       operationId: input.operationId ?? null,
       traceId: input.traceId ?? null,
@@ -67,16 +91,24 @@ export async function runBridgeAssetsWorkflow(params) {
     let state = LifecycleState.PLANNED
     pushAuditEvent(audit, state, 'workflow started')
 
+    const selectedVault = input.selectedVault ?? null
+    const depositTokenAddress =
+      selectedVault?.depositToken?.address ?? input.token
+    const toAddress = input.fromAddress ?? input.receiver
+    console.log('ENABLE DEPOSIT:', input.enableDeposit)
+    console.log('TO ADDRESS:', toAddress)
     const quoteInput = {
       fromChain: input.fromChain,
       toChain: input.toChain,
       fromToken: input.token,
-      toToken: input.token,
+      toToken: depositTokenAddress,
       fromAmount: input.amount,
       fromAddress: input.fromAddress,
-      toAddress: input.receiver,
+      toAddress,
       slippage: input.slippage,
     }
+
+    console.log('QUOTE PARAMS:', quoteInput)
 
     const {
       quoteResult,
@@ -157,7 +189,10 @@ export async function runBridgeAssetsWorkflow(params) {
       }
     }
 
-    if (policyDecision.decision === Decision.REQUIRE_CONFIRM || input.autoConfirm !== true) {
+    if (
+      policyDecision.decision === Decision.REQUIRE_CONFIRM ||
+      input.autoConfirm !== true
+    ) {
       state = LifecycleState.AWAITING_CONFIRM
       pushAuditEvent(audit, state, 'awaiting user confirmation')
       if (!input.confirmed) {
@@ -185,7 +220,11 @@ export async function runBridgeAssetsWorkflow(params) {
     })
 
     if (idempotency.decision === 'return_completed') {
-      pushAuditEvent(audit, LifecycleState.COMPLETED, 'idempotent replay: completed result reused')
+      pushAuditEvent(
+        audit,
+        LifecycleState.COMPLETED,
+        'idempotent replay: completed result reused',
+      )
       finalizeAudit(audit, LifecycleState.COMPLETED)
       return {
         state: LifecycleState.COMPLETED,
@@ -198,7 +237,11 @@ export async function runBridgeAssetsWorkflow(params) {
     }
 
     if (idempotency.decision === 'return_in_progress') {
-      pushAuditEvent(audit, LifecycleState.POLLING, 'idempotent replay: operation in progress')
+      pushAuditEvent(
+        audit,
+        LifecycleState.POLLING,
+        'idempotent replay: operation in progress',
+      )
       finalizeAudit(audit, LifecycleState.POLLING)
       return {
         state: LifecycleState.POLLING,
@@ -211,7 +254,11 @@ export async function runBridgeAssetsWorkflow(params) {
     }
 
     if (idempotency.decision === 'return_failed') {
-      pushAuditEvent(audit, LifecycleState.FAILED, 'idempotent replay: non-retryable failed result reused')
+      pushAuditEvent(
+        audit,
+        LifecycleState.FAILED,
+        'idempotent replay: non-retryable failed result reused',
+      )
       finalizeAudit(audit, LifecycleState.FAILED, {
         code: idempotency.record?.errorCode ?? ErrorCode.WORKFLOW_ERROR,
         message: idempotency.record?.errorMessage ?? 'Previously failed operation',
@@ -254,7 +301,8 @@ export async function runBridgeAssetsWorkflow(params) {
 
     if (spenderAddress && approvalProvider) {
       const approval = await ensureApproval({
-        tokenAddress: quoteResult.quote?.action?.fromToken?.address ?? input.tokenAddress,
+        tokenAddress:
+          quoteResult.quote?.action?.fromToken?.address ?? input.tokenAddress,
         ownerAddress: input.fromAddress,
         spenderAddress,
         requiredAmount: quoteResult.quote?.action?.fromAmount ?? input.amount,
@@ -273,11 +321,57 @@ export async function runBridgeAssetsWorkflow(params) {
     const execution = await executeTool.run({
       quote: quoteResult.quote,
       fromAddress: input.fromAddress,
-      toAddress: input.receiver,
+      toAddress,
       operationId: input.operationId,
     })
 
     audit.txHash = execution?.txHash ?? execution?.transactionHash ?? null
+    if (!audit.txHash && execution?.requiresSigner) {
+      console.log('⚠️ Requires signer, sending transaction...')
+
+      try {
+        const txRequest =
+          execution?.transactionRequest ||
+          execution?.tx ||
+          execution?.step?.transactionRequest
+
+        if (!txRequest) {
+          throw new Error('No transactionRequest found')
+        }
+
+        let txMeta = null
+        const txHash = await sendTransaction(txRequest, {
+          chainId: input.fromChain,
+          onResult(meta) {
+            txMeta = meta
+          },
+        })
+        execution.txHash = txHash
+        execution.broadcasted = true
+        execution.mode = 'executed'
+        execution.requiresSigner = false
+        execution.rpc = txMeta
+        audit.txHash = txHash
+        audit.nonceRpcUrl = txMeta?.nonceRpcUrl ?? null
+        audit.broadcastRpcUrl = txMeta?.broadcastRpcUrl ?? null
+        audit.receiptRpcUrl = txMeta?.receiptRpcUrl ?? null
+        pushAuditEvent(audit, state, 'transaction broadcasted via signer')
+      } catch (error) {
+        console.error('❌ FULL ERROR:', error)
+        console.error('❌ MESSAGE:', error.message)
+
+        state = LifecycleState.FAILED
+        pushAuditEvent(audit, state, `transaction failed: ${error.message}`)
+        finalizeAudit(audit, state)
+
+        return {
+          state,
+          error: error.message,
+          audit,
+        }
+      }
+    }
+
     state = LifecycleState.POLLING
     registry.update({
       key: operationKeyForError,
@@ -294,7 +388,11 @@ export async function runBridgeAssetsWorkflow(params) {
         toChain: input.toChain,
       },
       onTick: tick => {
-        pushAuditEvent(audit, LifecycleState.POLLING, `status ${tick.externalStatus}`)
+        pushAuditEvent(
+          audit,
+          LifecycleState.POLLING,
+          `status ${tick.externalStatus}`,
+        )
       },
       config: pollingConfig,
     })
@@ -311,9 +409,62 @@ export async function runBridgeAssetsWorkflow(params) {
       key: operationKeyForError,
       state,
       result: execution,
-      errorCode: state === LifecycleState.FAILED ? ErrorCode.WORKFLOW_ERROR : null,
-      errorMessage: state === LifecycleState.FAILED ? 'Execution status resolved to failed' : null,
+      errorCode:
+        state === LifecycleState.FAILED ? ErrorCode.WORKFLOW_ERROR : null,
+      errorMessage:
+        state === LifecycleState.FAILED
+          ? 'Execution status resolved to failed'
+          : null,
     })
+
+    let deposit = null
+    if (
+      state === LifecycleState.COMPLETED &&
+      input.enableDeposit !== false &&
+      selectedVault?.address &&
+      selectedVault?.depositToken?.address
+    ) {
+      const depositAmount = resolveDepositAmount({
+        execution,
+        statusPayload: pollResult.payload,
+        quote: quoteResult.quote,
+      })
+
+      if (!depositAmount) {
+        throw new Error('Unable to determine vault deposit amount')
+      }
+
+      pushAuditEvent(audit, state, 'starting vault deposit')
+      const depositFn = depositExecutor ?? depositToVault
+      const depositResult = await depositFn({
+        chainId: selectedVault.chainId ?? input.toChain,
+        vaultAddress: selectedVault.address,
+        tokenAddress: selectedVault.depositToken.address,
+        amount: depositAmount,
+        receiverAddress: input.fromAddress ?? input.receiver,
+      })
+      deposit = {
+        txHash: depositResult.depositTxHash ?? depositResult.txHash,
+        approveTxHash: depositResult.approveTxHash ?? null,
+        vaultAddress: selectedVault.address,
+        tokenAddress: selectedVault.depositToken.address,
+        amount: depositAmount,
+        approve: depositResult.approve ?? null,
+        deposit: depositResult.deposit ?? null,
+      }
+      audit.depositApprovalTxHash = deposit.approveTxHash
+      audit.depositTxHash = deposit.txHash
+      audit.depositApprovalRpcUrl =
+        depositResult.approve?.receiptRpcUrl ??
+        depositResult.approve?.broadcastRpcUrl ??
+        null
+      audit.depositRpcUrl =
+        depositResult.deposit?.receiptRpcUrl ??
+        depositResult.deposit?.broadcastRpcUrl ??
+        null
+      pushAuditEvent(audit, state, `vault deposit confirmed: ${deposit.txHash}`)
+    }
+
     finalizeAudit(audit, state)
 
     return {
@@ -321,15 +472,30 @@ export async function runBridgeAssetsWorkflow(params) {
       quote: quoteResult.quote,
       quoteSummary,
       execution,
+      deposit,
       status: pollResult.payload,
       audit,
     }
   } catch (error) {
     const mapped = classifyError(error)
     const failedState = LifecycleState.FAILED
+    if (audit) {
+      audit.depositApprovalTxHash =
+        error?.approveTxHash ?? audit.depositApprovalTxHash ?? null
+      audit.depositApprovalRpcUrl =
+        error?.approveMeta?.receiptRpcUrl ??
+        error?.approveMeta?.broadcastRpcUrl ??
+        audit.depositApprovalRpcUrl ??
+        null
+      audit.depositRpcUrl =
+        error?.depositMeta?.receiptRpcUrl ??
+        error?.depositMeta?.broadcastRpcUrl ??
+        audit.depositRpcUrl ??
+        null
+    }
     const fallbackRouteFingerprint =
       params?.input?.operationId && params?.input?.fromAddress
-        ? `${params?.input?.fromChain ?? ''}:${params?.input?.toChain ?? ''}:${params?.input?.token ?? ''}:${params?.input?.token ?? ''}:${params?.input?.amount ?? ''}`
+        ? `${params?.input?.fromChain ?? ''}:${params?.input?.toChain ?? ''}:${params?.input?.token ?? ''}:${params?.input?.selectedVault?.depositToken?.address ?? params?.input?.token ?? ''}:${params?.input?.amount ?? ''}`
         : ''
     const operationKey =
       operationKeyForError ??
@@ -345,13 +511,15 @@ export async function runBridgeAssetsWorkflow(params) {
       errorCode: mapped.code,
       errorMessage: mapped.message,
     })
-    const fallbackAudit = createAudit({
-      skillId: params?.skill?.id ?? 'bridge-assets',
-      operationId: params?.input?.operationId ?? null,
-      traceId: params?.input?.traceId ?? null,
-      walletAddress: params?.input?.fromAddress ?? null,
-      receiver: params?.input?.receiver ?? null,
-    })
+    const fallbackAudit =
+      audit ??
+      createAudit({
+        skillId: params?.skill?.id ?? 'bridge-assets',
+        operationId: params?.input?.operationId ?? null,
+        traceId: params?.input?.traceId ?? null,
+        walletAddress: params?.input?.fromAddress ?? null,
+        receiver: params?.input?.receiver ?? null,
+      })
     pushAuditEvent(fallbackAudit, failedState, mapped.message)
     finalizeAudit(fallbackAudit, failedState, {
       code: mapped.code,

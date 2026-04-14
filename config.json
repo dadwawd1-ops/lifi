@@ -1,0 +1,14 @@
+[
+  {
+    "type": "bridge-assets",
+    "fromChain": 1,
+    "toChain": 1,
+    "amount": "2000000000000000"
+  },
+  {
+    "type": "swap-then-bridge",
+    "fromChain": 1,
+    "toChain": 137,
+    "amount": "3000000000000000"
+  }
+]

@@ -29,7 +29,7 @@ Implemented so far:
 - Shared idempotency registry support for production wiring
 - Workflow runtime dispatcher (auto inject rollout flags + shared idempotency)
 - HTTP runtime server for internal service integration
-- Automated tests (`40 passed`)
+- Automated tests (`npm test`; current pass count depends on the latest suite)
 
 ## Run tests
 
@@ -132,6 +132,9 @@ Notes:
 - `LIFISKILL_USE_LIFI_API=true` enables real LI.FI quote/status calls.
 - Keep `LIFISKILL_USE_LIFI_EXECUTE=false` unless you have a production-ready
   signing/broadcasting path and understand execution implications.
+- Ethereum and Polygon signer writes use env RPC first plus public fallback RPCs,
+  with retry handling for nonce fetch, transaction population, and broadcast.
+- Vault `approve` / `deposit` reuse the same signer pipeline as route execution.
 
 Endpoints:
 

@@ -1,15 +1,12 @@
 {
   "ok": false,
-  "checkedAt": "2026-04-08T16:52:02.452Z",
+  "status": "PENDING_REAL_TRANSACTION",
+  "checkedAt": null,
   "request": {
-    "txHash": "0x你的真实交易哈希",
-    "fromChain": "42161",
-    "toChain": "8453",
-    "bridge": "across"
+    "txHash": null,
+    "fromChain": "1",
+    "toChain": "137",
+    "asset": "ETH"
   },
-  "error": {
-    "name": "LiFiApiError",
-    "message": "LI.FI request failed with status 400"
-  },
-  "note": "Verification request failed."
+  "note": "No real ETH -> Polygon transaction hash has been provided or broadcast from this repository. This file intentionally replaces the previous placeholder/failure record and must not be treated as execution proof."
 }

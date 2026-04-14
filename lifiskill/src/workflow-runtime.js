@@ -71,7 +71,9 @@ function inferActorId(input, explicitActorId) {
 
 function assertSkillSupported(skillId) {
   if (!SUPPORTED_SKILLS.includes(skillId)) {
-    throw new Error(`Unsupported skill id: ${skillId}`)
+    const error = new Error(`Unsupported skill id: ${skillId}`)
+    error.code = 'UNSUPPORTED_SKILL'
+    throw error
   }
 }
 
@@ -154,6 +156,24 @@ export function createWorkflowRuntime(options = {}) {
     }
   }
 
+  async function run(task = {}) {
+    return runSkill({
+      skillId: task.skillId ?? task.type,
+      input: task.input ?? task,
+      actorId: task.actorId,
+      featureFlags: task.featureFlags,
+      policyConfig: task.policyConfig,
+      pollingConfig: task.pollingConfig,
+      quotePolicy: task.quotePolicy,
+      approvalProvider: task.approvalProvider,
+      riskChecker: task.riskChecker,
+      addressScreener: task.addressScreener,
+      quoteTool: task.quoteTool,
+      executeTool: task.executeTool,
+      statusTool: task.statusTool,
+    })
+  }
+
   async function evaluateRollout(context = null) {
     if (!rolloutManager) {
       throw new Error('rolloutManager is not configured')
@@ -166,6 +186,7 @@ export function createWorkflowRuntime(options = {}) {
   }
 
   return {
+    run,
     runSkill,
     evaluateRollout,
     listSkills,

@@ -260,6 +260,13 @@ async function main() {
       async getAllowance() {
         return '1000000'
       },
+      async approve({ requiredAmount }) {
+        return {
+          ok: true,
+          txHash: '0xmock_approval_tx',
+          allowanceAfter: requiredAmount ?? '0',
+        }
+      },
     },
   })
 

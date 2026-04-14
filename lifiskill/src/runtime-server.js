@@ -1,6 +1,7 @@
 import { createServer } from 'node:http'
 import { randomUUID } from 'node:crypto'
 import { isIP } from 'node:net'
+import { prepareYieldWorkflowTask } from '../../lifi-feature/src/yield-execution-plan.js'
 
 const DEFAULT_CONFIG = {
   host: '127.0.0.1',
@@ -8,6 +9,7 @@ const DEFAULT_CONFIG = {
   maxBodyBytes: 1_000_000,
   trustedProxy: false,
   requestIdHeader: 'x-request-id',
+  corsOrigin: '*',
 }
 
 function toFiniteInteger(value, fallback) {
@@ -43,6 +45,15 @@ function writeJson(res, statusCode, payload, extraHeaders = {}) {
     ...extraHeaders,
   })
   res.end(body)
+}
+
+function createCorsHeaders(origin = '*') {
+  return {
+    'Access-Control-Allow-Origin': origin,
+    'Access-Control-Allow-Headers':
+      'Content-Type, Authorization, x-runtime-token, x-request-id',
+    'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+  }
 }
 
 function readJsonBody(req, maxBodyBytes) {
@@ -320,6 +331,112 @@ function createLogWriter(customWriter) {
   }
 }
 
+function resolveRunMode(body = {}) {
+  const rawMode =
+    typeof body?.mode === 'string' ? body.mode.trim().toLowerCase() : ''
+  if (rawMode === 'execute' || body?.execute === true) {
+    return 'execute'
+  }
+  return 'plan-only'
+}
+
+function mergeRunFlags(existingFlags = {}, mode = 'plan-only') {
+  return {
+    ...existingFlags,
+    quoteOnly:
+      Boolean(existingFlags?.quoteOnly) || mode !== 'execute',
+  }
+}
+
+function hasText(value) {
+  return typeof value === 'string' && value.trim().length > 0
+}
+
+function buildResultLogs(result) {
+  const logs = []
+
+  if (result?.runtime?.skillId) {
+    logs.push(`skill=${result.runtime.skillId}`)
+  }
+
+  for (const event of result?.audit?.events ?? []) {
+    logs.push(`${event.state}: ${event.detail}`)
+  }
+
+  const executionTxHash = result?.audit?.txHash ?? result?.execution?.txHash ?? null
+  if (executionTxHash) {
+    logs.push(`execution_tx=${executionTxHash}`)
+  }
+
+  const depositTxHash =
+    result?.deposit?.txHash ?? result?.audit?.depositTxHash ?? null
+  if (depositTxHash) {
+    logs.push(`deposit_tx=${depositTxHash}`)
+  }
+
+  if (result?.status?.status) {
+    logs.push(`status=${result.status.status}`)
+  }
+
+  return logs
+}
+
+async function buildRunSkillRequest(body = {}) {
+  if (body?.input && body?.skillId) {
+    const input = {
+      ...body.input,
+    }
+    if (body.skillId === 'bridge-assets' || body.skillId === 'swap-then-bridge') {
+      if (!hasText(input.receiver)) {
+        input.receiver = input.fromAddress ?? null
+      }
+    }
+
+    return {
+      skillId: body.skillId,
+      input,
+      actorId: body.actorId,
+      featureFlags: body.featureFlags,
+      policyConfig: body.policyConfig,
+      pollingConfig: body.pollingConfig,
+      quotePolicy: body.quotePolicy,
+      meta: null,
+    }
+  }
+
+  const mode = resolveRunMode(body)
+  const prepared = await prepareYieldWorkflowTask(
+    {
+      ...body,
+      skillId: body?.skillId ?? body?.type ?? 'bridge-assets',
+      enableDeposit: body?.enableDeposit ?? mode === 'execute',
+    },
+    {
+      earnBaseUrl:
+        process.env.LI_FI_EARN_BASE_URL ?? 'https://earn.li.fi',
+      apiKey: process.env.LI_FI_API_KEY,
+      sortBy: process.env.LI_FI_EARN_SORT_BY ?? 'apy',
+      maxPages: Number(process.env.EARN_VAULT_MAX_PAGES ?? 3),
+      limit: Number(process.env.EARN_VAULT_LIMIT ?? 100),
+    },
+  )
+
+  return {
+    skillId: prepared.skillId,
+    input: {
+      ...prepared.input,
+      autoConfirm: body?.autoConfirm ?? true,
+      confirmed: body?.confirmed ?? true,
+    },
+    actorId: body?.actorId ?? prepared.input.fromAddress,
+    featureFlags: mergeRunFlags(body?.featureFlags ?? {}, mode),
+    policyConfig: body?.policyConfig,
+    pollingConfig: body?.pollingConfig,
+    quotePolicy: body?.quotePolicy,
+    meta: prepared,
+  }
+}
+
 export function createRuntimeServer(options = {}) {
   if (!options.runtime || typeof options.runtime !== 'object') {
     throw new Error('createRuntimeServer requires `runtime`')
@@ -348,7 +465,13 @@ export function createRuntimeServer(options = {}) {
       options.requestIdHeader.trim().length > 0
         ? options.requestIdHeader.trim().toLowerCase()
         : DEFAULT_CONFIG.requestIdHeader,
+    corsOrigin:
+      typeof options.corsOrigin === 'string' &&
+      options.corsOrigin.trim().length > 0
+        ? options.corsOrigin.trim()
+        : DEFAULT_CONFIG.corsOrigin,
   }
+  const corsHeaders = createCorsHeaders(config.corsOrigin)
   const logWriter = createLogWriter(options.logWriter)
   const compiledAllowlist = compileAllowlist(options.ipAllowlist ?? [])
   const authToken =
@@ -380,6 +503,7 @@ export function createRuntimeServer(options = {}) {
           : payload
       writeJson(res, statusCode, body, {
         'x-request-id': requestId,
+        ...corsHeaders,
       })
       logWriter({
         ts: new Date().toISOString(),
@@ -399,6 +523,32 @@ export function createRuntimeServer(options = {}) {
     }
 
     try {
+      if (isMethod(req, 'OPTIONS')) {
+        res.writeHead(204, {
+          'Content-Length': '0',
+          ...corsHeaders,
+          'x-request-id': requestId,
+        })
+        res.end()
+        responded = true
+        logWriter({
+          ts: new Date().toISOString(),
+          event: 'runtime_http_access',
+          requestId,
+          method,
+          path,
+          statusCode: 204,
+          durationMs: Date.now() - start,
+          ip,
+          authEnabled: Boolean(authToken),
+          authProvided,
+          authorized: true,
+          errorCode: null,
+          skillId: null,
+        })
+        return
+      }
+
       if (path === '/healthz' && isMethod(req, 'GET')) {
         respond(200, {
           ok: true,
@@ -476,15 +626,16 @@ export function createRuntimeServer(options = {}) {
       }
 
       if (path === '/run-skill') {
-        const skillId = body?.skillId
+        const request = await buildRunSkillRequest(body)
+        const skillId = request.skillId
         const result = await runtime.runSkill({
           skillId,
-          input: body?.input,
-          actorId: body?.actorId,
-          featureFlags: body?.featureFlags,
-          policyConfig: body?.policyConfig,
-          pollingConfig: body?.pollingConfig,
-          quotePolicy: body?.quotePolicy,
+          input: request.input,
+          actorId: request.actorId,
+          featureFlags: request.featureFlags,
+          policyConfig: request.policyConfig,
+          pollingConfig: request.pollingConfig,
+          quotePolicy: request.quotePolicy,
           approvalProvider: options.approvalProvider,
           riskChecker: options.riskChecker,
           addressScreener: options.addressScreener,
@@ -492,10 +643,20 @@ export function createRuntimeServer(options = {}) {
           executeTool: options.executeTool,
           statusTool: options.statusTool,
         })
+        const logs = buildResultLogs(result)
+        const txHash = result?.audit?.txHash ?? result?.execution?.txHash ?? null
+        const depositTxHash =
+          result?.deposit?.txHash ?? result?.audit?.depositTxHash ?? null
         respond(
           200,
           {
             ok: true,
+            logs,
+            txHash,
+            depositTxHash,
+            state: result?.state ?? null,
+            selectedVault: request.meta?.selectedVault ?? null,
+            depositToken: request.meta?.depositToken ?? null,
             result,
           },
           {

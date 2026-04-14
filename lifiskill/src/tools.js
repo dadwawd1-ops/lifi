@@ -1,5 +1,8 @@
 import { LiFiClient } from './lifi-client.js'
-import { summarizeQuote, formatQuoteSummary } from './route-summary.js'
+import {
+  formatQuotePreview,
+  summarizeQuote,
+} from '../../lifi-feature/src/route-preview.js'
 
 export class LiFiQuoteTool {
   constructor(options = {}) {
@@ -12,7 +15,7 @@ export class LiFiQuoteTool {
     return {
       quote,
       summary,
-      text: formatQuoteSummary(summary),
+      text: formatQuotePreview(summary),
     }
   }
 }

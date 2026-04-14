@@ -1,0 +1,1069 @@
+﻿<!DOCTYPE html>
+<html class="light" lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+  <title>Sweep to Vault</title>
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
+  <style>
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #f9f9f8;
+      color: #1a1c1c;
+    }
+  </style>
+  <script id="tailwind-config">
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            tertiary: '#3b2000',
+            surface: '#f9f9f8',
+            'primary-fixed': '#c1ecd4',
+            background: '#f9f9f8',
+            'secondary-container': '#eae1da',
+            'tertiary-fixed-dim': '#eebd8e',
+            'on-tertiary-fixed-variant': '#61401b',
+            'on-surface-variant': '#414844',
+            'surface-container': '#eeeeed',
+            outline: '#717973',
+            'outline-variant': '#c1c8c2',
+            'surface-container-low': '#f3f4f3',
+            'surface-container-high': '#e8e8e7',
+            secondary: '#645d58',
+            'primary-fixed-dim': '#a5d0b9',
+            'primary-container': '#1b4332',
+            'on-surface': '#1a1c1c',
+            'surface-container-lowest': '#ffffff',
+            primary: '#012d1d',
+          },
+          fontFamily: {
+            headline: ['Inter'],
+            body: ['Inter'],
+            label: ['Inter'],
+          },
+        },
+      },
+    }
+  </script>
+</head>
+<body class="bg-surface selection:bg-primary-fixed selection:text-primary">
+  <nav class="sticky top-0 z-50 mx-auto flex w-full max-w-screen-2xl items-center justify-between bg-[#F9F9F8] px-6 py-4 lg:px-8">
+    <div class="flex items-center gap-10">
+      <span class="text-xl font-semibold uppercase tracking-tighter text-[#1B4332]">Sweep to Vault</span>
+      <div class="hidden items-center gap-8 text-sm font-medium tracking-tight md:flex">
+        <a class="text-stone-500 transition-colors duration-200 hover:text-[#1B4332]" href="#">Workflow</a>
+        <a class="border-b-2 border-[#3B2000] pb-1 text-[#1B4332]" href="#">Vault Planner</a>
+        <a class="text-stone-500 transition-colors duration-200 hover:text-[#1B4332]" href="#">Proof</a>
+      </div>
+    </div>
+    <div class="flex items-center gap-3">
+      <span class="rounded-full bg-secondary-container px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-[#4b4641]">LI.FI Hackathon</span>
+      <a class="rounded-xl bg-primary px-5 py-2 text-sm font-semibold text-white transition-all hover:opacity-90 active:scale-[0.99]" href="#runtime-console">Start Planning</a>
+    </div>
+  </nav>
+
+  <div class="h-px w-full bg-[#EAE1DA]"></div>
+
+  <main class="mx-auto max-w-screen-2xl px-6 lg:px-8">
+    <section class="py-20 text-center lg:py-24">
+      <span class="mb-6 inline-block text-xs font-semibold uppercase tracking-[0.15em] text-on-surface-variant">Cross-Chain Yield Consolidation</span>
+      <h1 class="mx-auto max-w-4xl font-headline text-5xl font-semibold leading-[1.05] tracking-tighter text-primary md:text-6xl">
+        Sweep fragmented cross-chain assets into one yield destination
+      </h1>
+      <p class="mx-auto mt-8 max-w-3xl text-lg text-on-surface-variant">
+        Discover a destination vault with LI.FI Earn data, then coordinate multiple LI.FI routes to move assets from different chains into a single destination vault.
+      </p>
+      <div class="mt-10 inline-flex items-center gap-2 rounded-full border border-outline-variant/30 bg-surface-container-low px-4 py-2">
+        <span class="material-symbols-outlined text-sm text-primary">hub</span>
+        <span class="text-xs font-medium text-on-surface-variant">Vault discovery powered by LI.FI Earn + route planning powered by Composer</span>
+      </div>
+
+      <div class="mx-auto mt-12 max-w-3xl rounded-2xl border border-outline-variant/20 bg-surface-container-lowest p-5 text-left shadow-sm">
+        <div class="grid gap-4 md:grid-cols-4">
+          <div>
+            <p class="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">Target Chain</p>
+            <p class="mt-1 text-sm font-semibold text-primary">Base</p>
+          </div>
+          <div>
+            <p class="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">Destination Vault</p>
+            <p class="mt-1 text-sm font-semibold text-primary">Morpho USDC Vault</p>
+          </div>
+          <div>
+            <p class="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">Sources Selected</p>
+            <p class="mt-1 text-sm font-semibold text-primary">3</p>
+          </div>
+          <div>
+            <p class="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">Routes Ready</p>
+            <p class="mt-1 text-sm font-semibold text-primary">2 / 3</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="mb-20 scroll-mt-28 lg:mb-24" id="runtime-console">
+      <div class="grid gap-8 lg:grid-cols-[1.2fr_0.8fr]">
+        <div class="overflow-hidden rounded-3xl border border-outline-variant/20 bg-white shadow-sm">
+          <div class="border-b border-outline-variant/15 bg-gradient-to-r from-[#f4efe6] via-[#f6f7f3] to-[#edf4ef] px-8 py-7">
+            <div class="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
+              <div>
+                <span class="text-[0.65rem] font-bold uppercase tracking-widest text-on-surface-variant">Live Runtime Console</span>
+                <h2 class="mt-2 text-3xl font-semibold tracking-tight text-primary">Connect the UI to `POST /run-skill`</h2>
+              </div>
+              <p class="max-w-md text-sm leading-relaxed text-on-surface-variant">
+                Point this page at the local `lifiskill` runtime, paste a batch of tasks, and plan or execute a consolidation run without leaving the UI.
+              </p>
+            </div>
+          </div>
+
+          <div class="grid gap-0 lg:grid-cols-[0.95fr_1.05fr]">
+            <div class="border-b border-outline-variant/15 bg-surface-container-low px-8 py-8 lg:border-b-0 lg:border-r">
+              <div class="grid gap-5">
+                <label class="grid gap-2">
+                  <span class="text-[0.65rem] font-bold uppercase tracking-widest text-on-surface-variant">Runtime URL</span>
+                  <input class="w-full rounded-2xl border border-outline-variant/40 bg-white px-4 py-3 text-sm text-primary shadow-sm focus:border-primary focus:ring-primary" id="runtime-url" type="text" value="http://127.0.0.1:8787" />
+                </label>
+
+                <label class="grid gap-2">
+                  <span class="text-[0.65rem] font-bold uppercase tracking-widest text-on-surface-variant">Runtime Token</span>
+                  <input class="w-full rounded-2xl border border-outline-variant/40 bg-white px-4 py-3 text-sm text-primary shadow-sm focus:border-primary focus:ring-primary" id="runtime-token" placeholder="Optional bearer token" type="password" />
+                </label>
+
+                <div class="grid gap-5 md:grid-cols-2">
+                  <label class="grid gap-2">
+                    <span class="text-[0.65rem] font-bold uppercase tracking-widest text-on-surface-variant">Wallet Address</span>
+                    <input class="w-full rounded-2xl border border-outline-variant/40 bg-white px-4 py-3 text-sm text-primary shadow-sm focus:border-primary focus:ring-primary" id="runtime-wallet" placeholder="0x..." type="text" />
+                  </label>
+                  <label class="grid gap-2">
+                    <span class="text-[0.65rem] font-bold uppercase tracking-widest text-on-surface-variant">Mode</span>
+                    <select class="w-full rounded-2xl border border-outline-variant/40 bg-white px-4 py-3 text-sm text-primary shadow-sm focus:border-primary focus:ring-primary" id="runtime-mode">
+                      <option value="plan-only">Plan Only</option>
+                      <option value="execute">Execute</option>
+                    </select>
+                  </label>
+                </div>
+
+                <div class="rounded-2xl border border-outline-variant/15 bg-white/80 p-4">
+                  <div class="mb-3 flex items-center justify-between">
+                    <span class="text-[0.65rem] font-bold uppercase tracking-widest text-on-surface-variant">Task Batch JSON</span>
+                    <button class="rounded-full bg-surface-container px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-primary transition-colors hover:bg-primary hover:text-white" id="load-sample" type="button">Load Sample</button>
+                  </div>
+                  <textarea class="min-h-[260px] w-full rounded-2xl border border-outline-variant/30 bg-[#f8faf8] px-4 py-4 font-mono text-xs leading-6 text-primary shadow-inner focus:border-primary focus:ring-primary" id="task-json" spellcheck="false"></textarea>
+                </div>
+
+                <div class="flex flex-wrap gap-3">
+                  <button class="rounded-2xl bg-primary px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-primary/10 transition-all hover:-translate-y-[1px]" id="run-batch" type="button">Run Batch</button>
+                  <button class="rounded-2xl border border-outline-variant/40 bg-white px-5 py-3 text-sm font-semibold text-primary transition-colors hover:border-primary hover:text-primary" id="ping-runtime" type="button">Ping Runtime</button>
+                </div>
+
+                <div class="rounded-2xl border border-tertiary-fixed-dim/25 bg-tertiary-fixed-dim/10 p-4 text-xs leading-relaxed text-on-tertiary-fixed-variant">
+                  Start the backend first with <code>cd f:\src\lifiskill</code> and <code>npm run serve:runtime</code>.
+                  This UI sends each task to <code>POST /run-skill</code> sequentially and keeps a local batch transcript below.
+                </div>
+              </div>
+            </div>
+
+            <div class="bg-surface-container-lowest px-8 py-8">
+              <div class="grid gap-5">
+                <div class="grid gap-4 md:grid-cols-2">
+                  <div class="rounded-2xl border border-outline-variant/15 bg-surface-container-low p-5">
+                    <div class="flex items-center justify-between gap-3">
+                      <span class="text-[0.65rem] font-bold uppercase tracking-widest text-on-surface-variant">Runtime Health</span>
+                      <span class="rounded-full bg-secondary-container px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-secondary" id="health-pill">Unknown</span>
+                    </div>
+                    <p class="mt-3 text-sm leading-relaxed text-on-surface-variant" id="health-copy">Health check has not run yet.</p>
+                  </div>
+
+                  <div class="rounded-2xl border border-outline-variant/15 bg-surface-container-low p-5">
+                    <span class="text-[0.65rem] font-bold uppercase tracking-widest text-on-surface-variant">Batch Snapshot</span>
+                    <div class="mt-4 grid grid-cols-3 gap-3 text-center">
+                      <div class="rounded-xl bg-white p-3 shadow-sm">
+                        <p class="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">Tasks</p>
+                        <p class="mt-2 text-xl font-semibold text-primary" id="metric-total">0</p>
+                      </div>
+                      <div class="rounded-xl bg-white p-3 shadow-sm">
+                        <p class="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">Done</p>
+                        <p class="mt-2 text-xl font-semibold text-primary" id="metric-completed">0</p>
+                      </div>
+                      <div class="rounded-xl bg-white p-3 shadow-sm">
+                        <p class="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">Failed</p>
+                        <p class="mt-2 text-xl font-semibold text-tertiary" id="metric-failed">0</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="rounded-2xl border border-outline-variant/15 bg-white p-5 shadow-sm">
+                  <div class="flex items-center justify-between gap-3">
+                    <span class="text-[0.65rem] font-bold uppercase tracking-widest text-on-surface-variant">Run Summary</span>
+                    <span class="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant" id="last-run-meta">No batch submitted</span>
+                  </div>
+                  <p class="mt-3 text-sm leading-relaxed text-on-surface-variant" id="last-run-copy">
+                    Paste a JSON array of tasks to generate live route previews through the runtime server.
+                  </p>
+                </div>
+
+                <div class="rounded-2xl border border-outline-variant/15 bg-white p-5 shadow-sm">
+                  <div class="mb-4 flex items-center justify-between gap-3">
+                    <span class="text-[0.65rem] font-bold uppercase tracking-widest text-on-surface-variant">Raw Request Preview</span>
+                    <span class="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">Last payload</span>
+                  </div>
+                  <pre class="max-h-[180px] overflow-auto rounded-2xl bg-[#0f1915] p-4 font-mono text-[11px] leading-6 text-[#d5efe0]" id="request-preview">No request submitted yet.</pre>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="overflow-hidden rounded-3xl border border-outline-variant/20 bg-[#143528] text-white shadow-lg shadow-primary/10">
+          <div class="border-b border-white/10 px-8 py-7">
+            <span class="text-[0.65rem] font-bold uppercase tracking-widest text-white/60">Live Route Feed</span>
+            <h3 class="mt-2 text-2xl font-semibold tracking-tight">Batch Execution Journal</h3>
+          </div>
+          <div class="space-y-5 px-8 py-8">
+            <div class="rounded-2xl bg-white/5 p-4">
+              <div class="flex items-center justify-between gap-3">
+                <span class="text-[10px] font-bold uppercase tracking-widest text-white/60">Runtime Tip</span>
+                <span class="rounded-full bg-white/10 px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-white/80" id="mode-pill">Plan Only</span>
+              </div>
+              <p class="mt-3 text-sm leading-relaxed text-white/75">
+                Each task result below includes runtime state, tx hash, deposit tx hash, and the first few log lines returned by the workflow.
+              </p>
+            </div>
+
+            <div class="space-y-4" id="results-list">
+              <div class="rounded-2xl border border-white/10 bg-white/5 p-5">
+                <span class="text-[10px] font-bold uppercase tracking-widest text-white/50">Awaiting Input</span>
+                <p class="mt-3 text-sm leading-relaxed text-white/75">
+                  Run a batch to render route-level responses here.
+                </p>
+              </div>
+            </div>
+
+            <div class="rounded-2xl border border-white/10 bg-black/20 p-5">
+              <div class="mb-4 flex items-center justify-between gap-3">
+                <span class="text-[0.65rem] font-bold uppercase tracking-widest text-white/60">Latest Response</span>
+                <span class="text-[10px] font-bold uppercase tracking-widest text-white/40">JSON</span>
+              </div>
+              <pre class="max-h-[260px] overflow-auto rounded-2xl bg-[#08110e] p-4 font-mono text-[11px] leading-6 text-[#b6dfc8]" id="response-preview">No response received yet.</pre>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="mb-20 px-2 lg:mb-24 lg:px-12">
+      <div class="grid gap-4 md:grid-cols-4">
+        <div class="group relative overflow-hidden rounded-xl bg-surface-container-low p-6">
+          <span class="text-[0.65rem] font-bold uppercase tracking-widest text-[#61401b]">Step 01</span>
+          <h3 class="mt-3 font-headline text-lg font-medium">Choose destination vault</h3>
+          <p class="mt-2 text-sm text-on-surface-variant">Find an executable vault on the target chain using LI.FI Earn data.</p>
+          <div class="absolute bottom-0 left-0 h-1 w-full translate-y-1 bg-primary transition-transform group-hover:translate-y-0"></div>
+        </div>
+        <div class="rounded-xl bg-surface-container-low p-6">
+          <span class="text-[0.65rem] font-bold uppercase tracking-widest text-[#61401b]">Step 02</span>
+          <h3 class="mt-3 font-headline text-lg font-medium">Add source assets</h3>
+          <p class="mt-2 text-sm text-on-surface-variant">Select balances from multiple chains and prepare them for one destination vault.</p>
+        </div>
+        <div class="rounded-xl bg-surface-container-low p-6">
+          <span class="text-[0.65rem] font-bold uppercase tracking-widest text-[#61401b]">Step 03</span>
+          <h3 class="mt-3 font-headline text-lg font-medium">Plan coordinated routes</h3>
+          <p class="mt-2 text-sm text-on-surface-variant">Generate route previews for swaps, bridges, fees, gas, and expected deposit outcomes.</p>
+        </div>
+        <div class="rounded-xl bg-surface-container-low p-6">
+          <span class="text-[0.65rem] font-bold uppercase tracking-widest text-[#61401b]">Step 04</span>
+          <h3 class="mt-3 font-headline text-lg font-medium">Execute and verify</h3>
+          <p class="mt-2 text-sm text-on-surface-variant">Execute and verify each route in the consolidation workflow.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="mb-20 grid items-start gap-8 lg:mb-24 lg:grid-cols-12">
+      <div class="flex flex-col gap-8 lg:col-span-7">
+        <div class="rounded-xl bg-surface-container-low p-8">
+          <div class="mb-8 flex flex-col justify-between gap-6 md:flex-row md:items-start">
+            <div>
+              <span class="text-[0.65rem] font-bold uppercase tracking-widest text-on-surface-variant">Destination Vault</span>
+              <h2 class="mt-1 text-2xl font-medium text-primary">Morpho USDC Vault</h2>
+              <p class="mt-1 text-[10px] font-medium uppercase tracking-tight italic text-primary-container/70">Selected with LI.FI Earn data</p>
+            </div>
+            <div class="flex flex-col items-start gap-2 md:items-end">
+              <div class="flex items-center gap-2 rounded-full bg-surface-container-lowest px-3 py-1 shadow-sm">
+                <span class="text-xs font-semibold">Base</span>
+                <div class="h-4 w-4 rounded-full bg-blue-500"></div>
+              </div>
+              <span class="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">Protocol: Morpho</span>
+            </div>
+          </div>
+
+          <div class="mb-10 grid gap-4 md:grid-cols-5">
+            <div class="rounded-lg border border-outline-variant/10 bg-surface-container-lowest p-3">
+              <p class="mb-1 text-[10px] font-bold uppercase text-on-surface-variant">APY</p>
+              <p class="text-xl font-semibold text-primary">8.4%</p>
+            </div>
+            <div class="rounded-lg border border-outline-variant/10 bg-surface-container-lowest p-3">
+              <p class="mb-1 text-[10px] font-bold uppercase text-on-surface-variant">TVL</p>
+              <p class="text-xl font-semibold text-primary">$124M</p>
+            </div>
+            <div class="rounded-lg border border-outline-variant/10 bg-surface-container-lowest p-3">
+              <p class="mb-1 text-[10px] font-bold uppercase text-on-surface-variant">Asset</p>
+              <p class="text-xl font-semibold text-primary">USDC</p>
+            </div>
+            <div class="rounded-lg border border-outline-variant/10 bg-surface-container-lowest p-3">
+              <p class="mb-1 text-[10px] font-bold uppercase text-on-surface-variant">Routeable</p>
+              <p class="text-xl font-semibold text-primary">Yes</p>
+            </div>
+            <div class="rounded-lg border border-outline-variant/10 bg-surface-container-lowest p-3">
+              <p class="mb-1 text-[10px] font-bold uppercase text-on-surface-variant">Redeemable</p>
+              <p class="text-xl font-semibold text-primary">Yes</p>
+            </div>
+          </div>
+
+          <div class="space-y-4">
+            <div class="mb-2 flex items-center justify-between">
+              <label class="text-[0.65rem] font-bold uppercase tracking-widest text-on-surface-variant">Assets Selected for Consolidation</label>
+              <span class="flex items-center gap-1 text-[10px] font-bold uppercase text-primary">
+                <span class="material-symbols-outlined text-xs">add_circle</span>
+                Add Source
+              </span>
+            </div>
+            <div class="group flex items-center justify-between rounded-lg border border-outline-variant/10 bg-surface-container-lowest p-4 transition-all hover:ring-1 hover:ring-primary-fixed-dim">
+              <div class="flex items-center gap-4">
+                <div class="flex h-10 w-10 items-center justify-center rounded-full bg-slate-100">
+                  <span class="material-symbols-outlined text-xl text-primary">account_balance_wallet</span>
+                </div>
+                <div>
+                  <h4 class="font-headline font-medium">USDC</h4>
+                  <p class="text-xs text-on-surface-variant">Arbitrum One</p>
+                </div>
+              </div>
+              <div class="flex items-center gap-6">
+                <div class="text-right">
+                  <p class="font-headline font-semibold">1,250.00</p>
+                  <p class="text-xs text-on-surface-variant">~$1,250.00</p>
+                </div>
+                <span class="rounded bg-green-100 px-2 py-1 text-[10px] font-bold uppercase text-green-700">Ready</span>
+              </div>
+            </div>
+            <div class="group flex items-center justify-between rounded-lg border border-outline-variant/10 bg-surface-container-lowest p-4 transition-all hover:ring-1 hover:ring-primary-fixed-dim">
+              <div class="flex items-center gap-4">
+                <div class="flex h-10 w-10 items-center justify-center rounded-full bg-slate-100">
+                  <span class="material-symbols-outlined text-xl text-primary">currency_bitcoin</span>
+                </div>
+                <div>
+                  <h4 class="font-headline font-medium">ETH</h4>
+                  <p class="text-xs text-on-surface-variant">Optimism</p>
+                </div>
+              </div>
+              <div class="flex items-center gap-6">
+                <div class="text-right">
+                  <p class="font-headline font-semibold">0.42</p>
+                  <p class="text-xs text-on-surface-variant">~$1,024.12</p>
+                </div>
+                <span class="rounded bg-tertiary-fixed-dim/30 px-2 py-1 text-[10px] font-bold uppercase text-tertiary">Needs Swap</span>
+              </div>
+            </div>
+            <div class="group flex items-center justify-between rounded-lg border border-outline-variant/10 bg-surface-container-lowest p-4 transition-all hover:ring-1 hover:ring-primary-fixed-dim">
+              <div class="flex items-center gap-4">
+                <div class="flex h-10 w-10 items-center justify-center rounded-full bg-slate-100">
+                  <span class="material-symbols-outlined text-xl text-primary">attach_money</span>
+                </div>
+                <div>
+                  <h4 class="font-headline font-medium">USDT</h4>
+                  <p class="text-xs text-on-surface-variant">Ethereum Mainnet</p>
+                </div>
+              </div>
+              <div class="flex items-center gap-6">
+                <div class="text-right">
+                  <p class="font-headline font-semibold">900.00</p>
+                  <p class="text-xs text-on-surface-variant">~$899.80</p>
+                </div>
+                <span class="rounded bg-secondary-container px-2 py-1 text-[10px] font-bold uppercase text-secondary">Review</span>
+              </div>
+            </div>
+          </div>
+
+          <button class="mt-12 w-full rounded-xl bg-primary py-5 text-lg font-semibold tracking-tight text-white shadow-xl shadow-primary/10 transition-all hover:-translate-y-[2px]">
+            Plan Consolidation
+          </button>
+        </div>
+      </div>
+
+      <div class="flex flex-col gap-6 lg:col-span-5">
+        <div class="rounded-xl border border-outline-variant/20 bg-surface-container-lowest p-8 shadow-sm">
+          <h3 class="mb-6 text-[0.65rem] font-bold uppercase tracking-widest text-on-surface-variant">Batch Summary</h3>
+          <div class="grid grid-cols-2 gap-y-6">
+            <div>
+              <span class="text-[10px] font-bold uppercase text-on-surface-variant">Total Sources</span>
+              <p class="text-xl font-semibold text-primary">3</p>
+            </div>
+            <div class="text-right">
+              <span class="text-[10px] font-bold uppercase text-on-surface-variant">Executable Routes</span>
+              <p class="text-xl font-semibold text-primary">2 / 3</p>
+            </div>
+            <div>
+              <span class="text-[10px] font-bold uppercase text-on-surface-variant">Estimated Deposit Value</span>
+              <p class="text-xl font-semibold text-primary">$3,173.92</p>
+            </div>
+            <div class="text-right">
+              <span class="text-[10px] font-bold uppercase text-on-surface-variant">Needs Review</span>
+              <p class="text-xl font-semibold text-tertiary">1</p>
+            </div>
+          </div>
+
+          <div class="mt-8 grid grid-cols-2 gap-4">
+            <div class="rounded-lg border border-outline-variant/10 bg-surface-container-low p-3 text-center">
+              <p class="mb-1 text-[10px] font-bold uppercase text-on-surface-variant">Total Gas</p>
+              <p class="text-sm font-semibold text-primary">$11.20</p>
+            </div>
+            <div class="rounded-lg border border-outline-variant/10 bg-surface-container-low p-3 text-center">
+              <p class="mb-1 text-[10px] font-bold uppercase text-on-surface-variant">Total Fees</p>
+              <p class="text-sm font-semibold text-primary">$7.20</p>
+            </div>
+            <div class="rounded-lg border border-outline-variant/10 bg-surface-container-low p-3 text-center">
+              <p class="mb-1 text-[10px] font-bold uppercase text-on-surface-variant">Estimated Completion</p>
+              <p class="text-sm font-semibold text-primary">8鈥?4 min</p>
+            </div>
+            <div class="rounded-lg border border-outline-variant/10 bg-surface-container-low p-3 text-center">
+              <p class="mb-1 text-[10px] font-bold uppercase text-on-surface-variant">Risk Level</p>
+              <p class="text-sm font-semibold text-green-600">Low</p>
+            </div>
+          </div>
+
+          <div class="mt-8 space-y-4 border-t border-outline-variant/20 pt-6">
+            <h4 class="mb-4 text-xs font-bold uppercase tracking-widest text-on-surface-variant">Route Breakdown</h4>
+            <div class="rounded-xl border border-outline-variant/10 bg-surface-container-low p-4">
+              <div class="mb-3 flex items-center justify-between">
+                <div class="flex gap-2">
+                  <span class="rounded bg-primary-fixed-dim/20 px-1.5 py-0.5 text-[8px] font-bold uppercase text-primary">Bridge</span>
+                  <span class="rounded bg-tertiary-fixed-dim/20 px-1.5 py-0.5 text-[8px] font-bold uppercase text-[#61401b]">Deposit</span>
+                </div>
+                <span class="text-[10px] font-medium text-on-surface-variant">ETA: 3鈥? min</span>
+              </div>
+              <div class="flex items-center gap-3">
+                <div class="flex flex-col items-center">
+                  <div class="h-6 w-6 rounded-full bg-blue-500"></div>
+                  <div class="my-1 h-4 w-px bg-outline-variant"></div>
+                  <div class="h-6 w-6 rounded-full bg-blue-600"></div>
+                </div>
+                <div class="flex-1">
+                  <p class="text-xs font-semibold">Arbitrum USDC <span class="px-2 font-normal text-on-surface-variant">鈫?/span> Base Vault</p>
+                  <p class="mt-1 text-[10px] text-on-surface-variant">Fee: $1.50 鈥?Gas: $4.20 鈥?Status: Ready</p>
+                </div>
+              </div>
+            </div>
+            <div class="rounded-xl border border-outline-variant/10 bg-surface-container-low p-4">
+              <div class="mb-3 flex items-center justify-between">
+                <div class="flex gap-2">
+                  <span class="rounded bg-tertiary-fixed-dim/30 px-1.5 py-0.5 text-[8px] font-bold uppercase text-tertiary">Swap</span>
+                  <span class="rounded bg-primary-fixed-dim/20 px-1.5 py-0.5 text-[8px] font-bold uppercase text-primary">Bridge</span>
+                  <span class="rounded bg-tertiary-fixed-dim/20 px-1.5 py-0.5 text-[8px] font-bold uppercase text-[#61401b]">Deposit</span>
+                </div>
+                <span class="text-[10px] font-medium text-on-surface-variant">ETA: 5鈥? min</span>
+              </div>
+              <div class="flex items-center gap-3">
+                <div class="flex flex-col items-center">
+                  <div class="h-6 w-6 rounded-full bg-orange-500"></div>
+                  <div class="my-1 h-4 w-px bg-outline-variant"></div>
+                  <div class="h-6 w-6 rounded-full bg-blue-600"></div>
+                </div>
+                <div class="flex-1">
+                  <p class="text-xs font-semibold">Optimism ETH <span class="px-2 font-normal text-on-surface-variant">鈫?/span> Base Vault</p>
+                  <p class="mt-1 text-[10px] text-on-surface-variant">Fee: $2.50 鈥?Gas: $5.80 鈥?Status: Needs swap</p>
+                </div>
+              </div>
+            </div>
+            <div class="rounded-xl border border-outline-variant/10 bg-surface-container-low p-4">
+              <div class="mb-3 flex items-center justify-between">
+                <div class="flex gap-2">
+                  <span class="rounded bg-primary-fixed-dim/20 px-1.5 py-0.5 text-[8px] font-bold uppercase text-primary">Bridge</span>
+                  <span class="rounded bg-secondary-container px-1.5 py-0.5 text-[8px] font-bold uppercase text-secondary">Review</span>
+                </div>
+                <span class="text-[10px] font-medium text-on-surface-variant">ETA: 4鈥? min</span>
+              </div>
+              <div class="flex items-center gap-3">
+                <div class="flex flex-col items-center">
+                  <div class="h-6 w-6 rounded-full bg-slate-700"></div>
+                  <div class="my-1 h-4 w-px bg-outline-variant"></div>
+                  <div class="h-6 w-6 rounded-full bg-blue-600"></div>
+                </div>
+                <div class="flex-1">
+                  <p class="text-xs font-semibold">Ethereum USDT <span class="px-2 font-normal text-on-surface-variant">鈫?/span> Base Vault</p>
+                  <p class="mt-1 text-[10px] text-on-surface-variant">Fee: $3.20 鈥?Gas: $1.20 鈥?Status: Pending review</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="rounded-lg border border-tertiary-fixed-dim/20 bg-tertiary-fixed-dim/10 p-4">
+              <div class="flex items-start gap-2">
+                <span class="material-symbols-outlined mt-0.5 text-sm text-tertiary">info</span>
+                <ul class="list-disc pl-3 text-[10px] leading-relaxed text-on-tertiary-fixed-variant">
+                  <li>Quotes may expire before execution</li>
+                  <li>Each source chain requires gas</li>
+                  <li>Some routes may need token approval</li>
+                </ul>
+              </div>
+            </div>
+
+            <button class="w-full rounded-xl bg-tertiary py-5 text-lg font-semibold tracking-tight text-white shadow-lg shadow-tertiary/20 transition-all hover:opacity-95">
+              Review Execution Plan
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="relative mb-20 overflow-hidden rounded-2xl bg-primary p-12 lg:mb-24">
+      <div class="absolute right-0 top-0 p-8 opacity-10">
+        <span class="material-symbols-outlined text-[12rem]">task_alt</span>
+      </div>
+      <div class="relative z-10 grid gap-12 lg:grid-cols-2">
+        <div>
+          <div class="mb-6 inline-flex items-center gap-2 rounded-full bg-primary-fixed-dim/20 px-3 py-1">
+            <span class="h-2 w-2 animate-pulse rounded-full bg-primary-fixed-dim"></span>
+            <span class="text-[10px] font-bold uppercase tracking-widest text-primary-fixed-dim">Execution Evidence Ready</span>
+          </div>
+          <h2 class="mb-4 text-4xl font-semibold text-white">Batch Verification</h2>
+          <p class="mb-8 max-w-md text-lg text-[#d8ebe1]">
+            Sweep to Vault records route-level execution evidence so builders can prove LI.FI-powered consolidation into a destination vault.
+          </p>
+          <div class="space-y-4">
+            <div class="flex items-center justify-between border-b border-white/10 py-3">
+              <span class="text-sm text-[#d8ebe1]">Destination</span>
+              <span class="text-sm font-bold text-white">Morpho USDC Vault on Base</span>
+            </div>
+            <div class="flex items-center justify-between border-b border-white/10 py-3">
+              <span class="text-sm text-[#d8ebe1]">Completed Routes</span>
+              <span class="text-sm font-bold text-white">2 / 3</span>
+            </div>
+            <div class="flex items-center justify-between border-b border-white/10 py-3">
+              <span class="text-sm text-[#d8ebe1]">Proof Status</span>
+              <span class="text-sm font-bold text-primary-fixed-dim">Verified</span>
+            </div>
+            <div class="flex items-center justify-between border-b border-white/10 py-3">
+              <span class="text-sm text-[#d8ebe1]">Batch ID</span>
+              <span class="font-mono text-xs text-white">sweep_2026_0410_01</span>
+            </div>
+          </div>
+          <div class="mt-8 space-y-2">
+            <p class="mb-3 text-[10px] font-bold uppercase tracking-widest text-[#d8ebe1]">Route-Level Transactions</p>
+            <div class="flex justify-between rounded bg-white/5 p-2 text-xs text-white/80">
+              <span>Route 1: Arbitrum USDC 鈫?Base Vault</span>
+              <span class="flex items-center gap-1">Done <span class="material-symbols-outlined text-[10px]">open_in_new</span></span>
+            </div>
+            <div class="flex justify-between rounded bg-white/5 p-2 text-xs text-white/80">
+              <span>Route 2: Optimism ETH 鈫?Base Vault</span>
+              <span class="flex items-center gap-1">Done <span class="material-symbols-outlined text-[10px]">open_in_new</span></span>
+            </div>
+            <div class="flex justify-between rounded bg-white/5 p-2 text-xs text-white/40">
+              <span>Route 3: Ethereum USDT 鈫?Base Vault</span>
+              <span>Pending</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="overflow-hidden rounded-xl border border-white/5 bg-black/20 p-6 font-mono text-[11px] leading-relaxed text-[#d8ebe1] backdrop-blur-md">
+          <div class="mb-4 flex items-center justify-between border-b border-white/10 pb-4">
+            <span class="font-bold uppercase tracking-widest opacity-50">Multi-Route Proof JSON</span>
+            <span class="material-symbols-outlined text-sm">content_copy</span>
+          </div>
+          <pre class="text-primary-fixed-dim">{
+  "product": "SweepToVault",
+  "destination": {
+    "chain": "Base",
+    "vault": "Morpho USDC Vault"
+  },
+  "batchStatus": "partially_completed",
+  "routes": [
+    {
+      "sourceChain": "Arbitrum",
+      "token": "USDC",
+      "status": "DONE",
+      "txHash": "0x8a1...9b2e"
+    },
+    {
+      "sourceChain": "Optimism",
+      "token": "ETH",
+      "status": "DONE",
+      "txHash": "0x3f4...2a11"
+    },
+    {
+      "sourceChain": "Ethereum",
+      "token": "USDT",
+      "status": "PENDING",
+      "txHash": null
+    }
+  ]
+}</pre>
+        </div>
+      </div>
+    </section>
+
+    <section class="mb-24 lg:mb-32">
+      <h2 class="mb-16 text-center text-3xl font-semibold text-primary">Why It Matters</h2>
+      <div class="grid gap-8 md:grid-cols-3">
+        <div class="rounded-xl bg-surface-container-low p-10">
+          <div class="mb-8 flex h-12 w-12 items-center justify-center rounded-lg bg-white shadow-sm">
+            <span class="material-symbols-outlined text-primary">grid_view</span>
+          </div>
+          <h3 class="mb-4 text-xl font-semibold text-primary">Reduce fragmented balances</h3>
+          <p class="text-sm leading-relaxed text-on-surface-variant">Move scattered assets from multiple chains into one clear destination instead of managing them manually.</p>
+        </div>
+        <div class="rounded-xl bg-surface-container-low p-10">
+          <div class="mb-8 flex h-12 w-12 items-center justify-center rounded-lg bg-white shadow-sm">
+            <span class="material-symbols-outlined text-primary">account_tree</span>
+          </div>
+          <h3 class="mb-4 text-xl font-semibold text-primary">Turn bridging into a yield workflow</h3>
+          <p class="text-sm leading-relaxed text-on-surface-variant">Move beyond simple bridging by routing fragmented assets into one destination vault with route-level review and execution tracking.</p>
+        </div>
+        <div class="rounded-xl bg-surface-container-low p-10">
+          <div class="mb-8 flex h-12 w-12 items-center justify-center rounded-lg bg-white shadow-sm">
+            <span class="material-symbols-outlined text-primary">code</span>
+          </div>
+          <h3 class="mb-4 text-xl font-semibold text-primary">Make LI.FI integration easier for builders</h3>
+          <p class="text-sm leading-relaxed text-on-surface-variant">Combine vault discovery, coordinated route planning, and execution evidence in one workflow that is easier to demo and extend.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="mb-24 grid items-center gap-10 rounded-3xl bg-[#F1F1F0] px-8 py-16 md:grid-cols-2 lg:mb-32 lg:gap-16 lg:px-12">
+      <div class="relative">
+        <div class="absolute -left-4 -top-4 h-24 w-24 rounded-full bg-primary-fixed opacity-30 blur-3xl"></div>
+        <div class="relative z-10 rounded-2xl bg-gradient-to-br from-[#18392C] via-[#274e3d] to-[#496E5D] p-8 shadow-2xl">
+          <div class="grid gap-4 md:grid-cols-2">
+            <div class="rounded-xl border border-white/10 bg-white/10 p-5 text-white">
+              <p class="text-[10px] font-bold uppercase tracking-widest text-white/70">LI.FI Earn Data API</p>
+              <p class="mt-3 text-sm leading-relaxed text-white/85">Vault discovery, protocol metadata, and yield metrics used to select a destination vault on the target chain.</p>
+            </div>
+            <div class="rounded-xl border border-white/10 bg-white/10 p-5 text-white">
+              <p class="text-[10px] font-bold uppercase tracking-widest text-white/70">LI.FI Composer</p>
+              <p class="mt-3 text-sm leading-relaxed text-white/85">Route planning for swaps, bridges, and vault deposit paths across multiple source assets and chains.</p>
+            </div>
+          </div>
+          <div class="mt-6 flex flex-wrap gap-3">
+            <span class="rounded-full bg-white/15 px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-white">Track 4: Developer Tooling</span>
+            <span class="rounded-full bg-white/15 px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-white">Execution Proof Ready</span>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <span class="text-[0.65rem] font-bold uppercase tracking-widest text-on-surface-variant">Hackathon Fit</span>
+        <h2 class="mt-4 text-3xl font-semibold leading-tight text-primary">Built to clearly demonstrate the LI.FI stack in one practical workflow</h2>
+        <div class="mt-8 space-y-8">
+          <div class="flex gap-4">
+            <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-bold text-white">1</div>
+            <div>
+              <h4 class="mb-1 text-sm font-bold uppercase tracking-tight">Destination discovery</h4>
+              <p class="text-sm text-on-surface-variant">The UI makes the destination vault central, helping judges understand how Earn data informs the target outcome.</p>
+            </div>
+          </div>
+          <div class="flex gap-4">
+            <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-bold text-white">2</div>
+            <div>
+              <h4 class="mb-1 text-sm font-bold uppercase tracking-tight">Coordinated route planning</h4>
+              <p class="text-sm text-on-surface-variant">Multiple source assets are modeled as coordinated routes rather than a single exaggerated one-click execution story.</p>
+            </div>
+          </div>
+          <div class="flex gap-4">
+            <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-bold text-white">3</div>
+            <div>
+              <h4 class="mb-1 text-sm font-bold uppercase tracking-tight">Execution evidence</h4>
+              <p class="text-sm text-on-surface-variant">Batch verification and route-level proof make the final submission story more credible and more aligned with the hackathon rules.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="hidden w-full flex-col items-center justify-between border-t border-stone-200/15 bg-[#F9F9F8] px-6 py-12 md:flex-row lg:px-8">
+    <div class="flex flex-col gap-2">
+      <p class="text-[0.75rem] font-semibold uppercase tracking-[0.05em] text-[#1B4332]">漏 2026 Sweep to Vault. Architectural Ledger.</p>
+      <p class="text-[0.65rem] font-bold uppercase tracking-widest text-stone-400">Built for DeFi Mullet Hackathon #1 鈥?2026</p>
+    </div>
+    <div class="mt-8 flex gap-8 text-[0.75rem] font-semibold uppercase tracking-[0.05em] md:mt-0">
+      <a class="text-stone-400 transition-colors hover:text-[#3B2000]" href="#">Terms</a>
+      <a class="text-stone-400 transition-colors hover:text-[#3B2000]" href="#">Privacy</a>
+      <a class="text-stone-400 transition-colors hover:text-[#3B2000]" href="#">Docs</a>
+      <a class="text-stone-400 transition-colors hover:text-[#3B2000]" href="#">Twitter</a>
+      <a class="text-stone-400 transition-colors hover:text-[#3B2000]" href="#">Github</a>
+    </div>
+  </footer>
+  <footer class="flex w-full flex-col items-center justify-between border-t border-stone-200/15 bg-[#F9F9F8] px-6 py-12 md:flex-row lg:px-8">
+    <div class="flex flex-col gap-2">
+      <p class="text-[0.75rem] font-semibold uppercase tracking-[0.05em] text-[#1B4332]">Copyright 2026 Sweep to Vault. Architectural Ledger.</p>
+      <p class="text-[0.65rem] font-bold uppercase tracking-widest text-stone-400">Built for DeFi Mullet Hackathon #1 - 2026</p>
+    </div>
+    <div class="mt-8 flex gap-8 text-[0.75rem] font-semibold uppercase tracking-[0.05em] md:mt-0">
+      <a class="text-stone-400 transition-colors hover:text-[#3B2000]" href="#">Terms</a>
+      <a class="text-stone-400 transition-colors hover:text-[#3B2000]" href="#">Privacy</a>
+      <a class="text-stone-400 transition-colors hover:text-[#3B2000]" href="#">Docs</a>
+      <a class="text-stone-400 transition-colors hover:text-[#3B2000]" href="#">Twitter</a>
+      <a class="text-stone-400 transition-colors hover:text-[#3B2000]" href="#">Github</a>
+    </div>
+  </footer>
+  <script>
+    const SAMPLE_TASKS = [
+      {
+        type: 'bridge-assets',
+        fromChain: 42161,
+        toChain: 8453,
+        amount: '1250000',
+        token: 'USDC'
+      },
+      {
+        type: 'swap-then-bridge',
+        fromChain: 10,
+        toChain: 8453,
+        amount: '420000000000000000',
+        fromToken: 'ETH'
+      },
+      {
+        type: 'bridge-assets',
+        fromChain: 1,
+        toChain: 8453,
+        amount: '900000',
+        token: 'USDT'
+      }
+    ];
+
+    const els = {
+      runtimeUrl: document.getElementById('runtime-url'),
+      runtimeToken: document.getElementById('runtime-token'),
+      runtimeWallet: document.getElementById('runtime-wallet'),
+      runtimeMode: document.getElementById('runtime-mode'),
+      taskJson: document.getElementById('task-json'),
+      loadSample: document.getElementById('load-sample'),
+      pingRuntime: document.getElementById('ping-runtime'),
+      runBatch: document.getElementById('run-batch'),
+      healthPill: document.getElementById('health-pill'),
+      healthCopy: document.getElementById('health-copy'),
+      metricTotal: document.getElementById('metric-total'),
+      metricCompleted: document.getElementById('metric-completed'),
+      metricFailed: document.getElementById('metric-failed'),
+      lastRunMeta: document.getElementById('last-run-meta'),
+      lastRunCopy: document.getElementById('last-run-copy'),
+      requestPreview: document.getElementById('request-preview'),
+      responsePreview: document.getElementById('response-preview'),
+      resultsList: document.getElementById('results-list'),
+      modePill: document.getElementById('mode-pill')
+    };
+
+    function formatJson(value) {
+      return JSON.stringify(value, null, 2);
+    }
+
+    function setSampleTasks() {
+      els.taskJson.value = formatJson(SAMPLE_TASKS);
+      syncModePill();
+      updateBatchMetrics({
+        total: SAMPLE_TASKS.length,
+        completed: 0,
+        failed: 0
+      });
+    }
+
+    function syncModePill() {
+      const execute = els.runtimeMode.value === 'execute';
+      els.modePill.textContent = execute ? 'Execute' : 'Plan Only';
+      els.modePill.className = execute
+        ? 'rounded-full bg-[#c1ecd4] px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-[#123222]'
+        : 'rounded-full bg-white/10 px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-white/80';
+    }
+
+    function parseTasks() {
+      let parsed;
+      try {
+        parsed = JSON.parse(els.taskJson.value);
+      } catch (error) {
+        throw new Error('Task JSON is not valid JSON.');
+      }
+
+      if (!Array.isArray(parsed)) {
+        throw new Error('Task JSON must be an array of task objects.');
+      }
+
+      return parsed;
+    }
+
+    function normalizeTask(task, mode) {
+      const wallet = els.runtimeWallet.value.trim();
+      const next = {
+        ...task,
+        mode,
+        autoConfirm: true,
+        confirmed: true
+      };
+
+      if (wallet && !next.fromAddress) {
+        next.fromAddress = wallet;
+      }
+
+      return next;
+    }
+
+    function headers() {
+      const token = els.runtimeToken.value.trim();
+      const next = {
+        'Content-Type': 'application/json'
+      };
+      if (token) {
+        next.Authorization = `Bearer ${token}`;
+      }
+      return next;
+    }
+
+    function setHealth(state, copy) {
+      const styles = {
+        unknown: ['Unknown', 'rounded-full bg-secondary-container px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-secondary'],
+        healthy: ['Healthy', 'rounded-full bg-[#c1ecd4] px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-[#123222]'],
+        error: ['Offline', 'rounded-full bg-[#f1d3cb] px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-[#7a2f1b]'],
+        busy: ['Checking', 'rounded-full bg-[#ece4c8] px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-[#61401b]']
+      };
+      const [label, className] = styles[state] || styles.unknown;
+      els.healthPill.textContent = label;
+      els.healthPill.className = className;
+      els.healthCopy.textContent = copy;
+    }
+
+    function updateBatchMetrics(summary) {
+      els.metricTotal.textContent = String(summary.total);
+      els.metricCompleted.textContent = String(summary.completed);
+      els.metricFailed.textContent = String(summary.failed);
+    }
+
+    function statusTone(state) {
+      if (state === 'completed') {
+        return 'bg-[#c1ecd4] text-[#123222]';
+      }
+      if (state === 'failed') {
+        return 'bg-[#f1d3cb] text-[#7a2f1b]';
+      }
+      if (state === 'awaiting_confirm') {
+        return 'bg-[#ece4c8] text-[#61401b]';
+      }
+      return 'bg-white/10 text-white/85';
+    }
+
+    function escapeHtml(value) {
+      return String(value)
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#39;');
+    }
+
+    function renderResults(items) {
+      if (items.length === 0) {
+        els.resultsList.innerHTML = `
+          <div class="rounded-2xl border border-white/10 bg-white/5 p-5">
+            <span class="text-[10px] font-bold uppercase tracking-widest text-white/50">Awaiting Input</span>
+            <p class="mt-3 text-sm leading-relaxed text-white/75">
+              Run a batch to render route-level responses here.
+            </p>
+          </div>
+        `;
+        return;
+      }
+
+      els.resultsList.innerHTML = items.map((item, index) => {
+        const state = item.response?.state || item.response?.result?.state || item.errorState || 'unknown';
+        const txHash = item.response?.txHash || item.response?.result?.audit?.txHash || 'None';
+        const depositTxHash = item.response?.depositTxHash || item.response?.result?.audit?.depositTxHash || 'None';
+        const routeType = item.task.type || item.task.skillId || 'route';
+        const logs = Array.isArray(item.response?.logs) ? item.response.logs.slice(0, 4) : [];
+        const copy = logs.length > 0 ? logs.join('\n') : (item.errorMessage || 'No logs returned.');
+
+        return `
+          <article class="rounded-2xl border border-white/10 bg-white/5 p-5">
+            <div class="flex items-start justify-between gap-4">
+              <div>
+                <span class="text-[10px] font-bold uppercase tracking-widest text-white/50">Task ${index + 1}</span>
+                <h4 class="mt-2 text-lg font-semibold text-white">${escapeHtml(routeType)}</h4>
+              </div>
+              <span class="rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-widest ${statusTone(state)}">${escapeHtml(state)}</span>
+            </div>
+            <div class="mt-4 grid gap-3 text-[11px] text-white/75">
+              <div class="rounded-xl bg-black/20 p-3">
+                <span class="block text-[10px] font-bold uppercase tracking-widest text-white/40">Tx Hash</span>
+                <span class="mt-2 block break-all font-mono">${escapeHtml(txHash)}</span>
+              </div>
+              <div class="rounded-xl bg-black/20 p-3">
+                <span class="block text-[10px] font-bold uppercase tracking-widest text-white/40">Deposit Tx</span>
+                <span class="mt-2 block break-all font-mono">${escapeHtml(depositTxHash)}</span>
+              </div>
+              <div class="rounded-xl bg-black/20 p-3">
+                <span class="block text-[10px] font-bold uppercase tracking-widest text-white/40">Logs</span>
+                <pre class="mt-2 whitespace-pre-wrap break-words font-mono text-[11px] leading-5 text-[#d4ebdc]">${escapeHtml(copy)}</pre>
+              </div>
+            </div>
+          </article>
+        `;
+      }).join('');
+    }
+
+    async function pingRuntime() {
+      const baseUrl = els.runtimeUrl.value.trim().replace(/\/$/, '');
+      if (!baseUrl) {
+        throw new Error('Runtime URL is required.');
+      }
+
+      setHealth('busy', 'Checking runtime health endpoint...');
+      const response = await fetch(`${baseUrl}/healthz`);
+      if (!response.ok) {
+        throw new Error(`Health check failed with status ${response.status}.`);
+      }
+      const payload = await response.json();
+      setHealth('healthy', `Runtime responded at ${payload.now}. Uptime ${Math.round((payload.uptimeMs || 0) / 1000)}s.`);
+      return payload;
+    }
+
+    async function runBatch() {
+      const startedAt = Date.now();
+      const baseUrl = els.runtimeUrl.value.trim().replace(/\/$/, '');
+      if (!baseUrl) {
+        throw new Error('Runtime URL is required.');
+      }
+
+      const mode = els.runtimeMode.value;
+      const tasks = parseTasks();
+      const normalizedTasks = tasks.map(task => normalizeTask(task, mode));
+
+      els.requestPreview.textContent = formatJson(normalizedTasks);
+      els.lastRunMeta.textContent = 'Submitting batch';
+      els.lastRunCopy.textContent = `Sending ${normalizedTasks.length} task(s) to ${baseUrl}/run-skill in ${mode} mode.`;
+
+      const results = [];
+      let completed = 0;
+      let failed = 0;
+
+      renderResults([]);
+      updateBatchMetrics({
+        total: normalizedTasks.length,
+        completed,
+        failed
+      });
+
+      for (const task of normalizedTasks) {
+        try {
+          const response = await fetch(`${baseUrl}/run-skill`, {
+            method: 'POST',
+            headers: headers(),
+            body: JSON.stringify(task)
+          });
+
+          const payload = await response.json();
+          if (!response.ok || payload.ok === false) {
+            failed += 1;
+            results.push({
+              task,
+              response: payload,
+              errorState: payload?.error?.code || `http_${response.status}`,
+              errorMessage: payload?.error?.message || `Request failed with status ${response.status}.`
+            });
+          } else {
+            const state = payload.state || payload.result?.state;
+            if (state === 'completed') {
+              completed += 1;
+            }
+            if (state === 'failed') {
+              failed += 1;
+            }
+            results.push({
+              task,
+              response: payload
+            });
+          }
+        } catch (error) {
+          failed += 1;
+          results.push({
+            task,
+            response: null,
+            errorState: 'network_error',
+            errorMessage: error.message
+          });
+        }
+
+        renderResults(results);
+        updateBatchMetrics({
+          total: normalizedTasks.length,
+          completed,
+          failed
+        });
+      }
+
+      const elapsedMs = Date.now() - startedAt;
+      els.responsePreview.textContent = formatJson(results.map(item => ({
+        task: item.task,
+        response: item.response,
+        errorState: item.errorState,
+        errorMessage: item.errorMessage
+      })));
+      els.lastRunMeta.textContent = `${normalizedTasks.length} task(s) in ${elapsedMs}ms`;
+      els.lastRunCopy.textContent = `${completed} completed, ${failed} failed, ${Math.max(normalizedTasks.length - completed - failed, 0)} still non-terminal.`;
+    }
+
+    async function withButtonState(button, handler) {
+      const original = button.textContent;
+      button.disabled = true;
+      button.classList.add('opacity-60', 'cursor-not-allowed');
+      try {
+        await handler();
+      } finally {
+        button.disabled = false;
+        button.classList.remove('opacity-60', 'cursor-not-allowed');
+        button.textContent = original;
+      }
+    }
+
+    els.loadSample.addEventListener('click', () => {
+      setSampleTasks();
+      els.lastRunMeta.textContent = 'Sample loaded';
+      els.lastRunCopy.textContent = 'Edit the JSON batch or run it as-is against the runtime.';
+    });
+
+    els.runtimeMode.addEventListener('change', syncModePill);
+
+    els.pingRuntime.addEventListener('click', () => withButtonState(els.pingRuntime, async () => {
+      els.pingRuntime.textContent = 'Checking...';
+      try {
+        const payload = await pingRuntime();
+        els.responsePreview.textContent = formatJson(payload);
+      } catch (error) {
+        setHealth('error', error.message);
+        els.responsePreview.textContent = formatJson({
+          error: error.message
+        });
+      }
+    }));
+
+    els.runBatch.addEventListener('click', () => withButtonState(els.runBatch, async () => {
+      els.runBatch.textContent = 'Running...';
+      try {
+        await pingRuntime();
+        await runBatch();
+      } catch (error) {
+        setHealth('error', error.message);
+        els.lastRunMeta.textContent = 'Batch aborted';
+        els.lastRunCopy.textContent = error.message;
+        els.responsePreview.textContent = formatJson({
+          error: error.message
+        });
+      }
+    }));
+
+    setSampleTasks();
+  </script>
+</body>
+</html>
+
+

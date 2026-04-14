@@ -101,14 +101,93 @@ export class LiFiClient {
     return payload
   }
 
+  async post(path, body = {}) {
+    const params = {}
+    if (this.integrator) {
+      params.integrator = this.integrator
+    }
+
+    const queryString = toQueryString(params)
+    const url = queryString ? `${this.baseUrl}${path}?${queryString}` : `${this.baseUrl}${path}`
+
+    const response = await this.fetchImpl(url, {
+      method: 'POST',
+      headers: this.createHeaders({
+        'Content-Type': 'application/json',
+      }),
+      body: JSON.stringify(body),
+    })
+
+    const text = await response.text()
+    const payload = text ? safeJsonParse(text) : null
+
+    if (!response.ok) {
+      throw new LiFiApiError(
+        `LI.FI request failed with status ${response.status}`,
+        {
+          status: response.status,
+          code: payload?.code,
+          payload,
+        },
+      )
+    }
+
+    return payload
+  }
+
   async getQuote(params) {
     validateQuoteRequest(params)
     return this.get('/quote', params)
   }
 
+  async getRoutes(params) {
+    if (!params || typeof params !== 'object') {
+      throw new Error('Missing LI.FI routes payload')
+    }
+
+    return this.post('/advanced/routes', params)
+  }
+
   async getStatus(params) {
     validateStatusRequest(params)
     return this.get('/status', params)
+  }
+
+  async getStepTransaction(step) {
+    if (!step || typeof step !== 'object') {
+      throw new Error('getStepTransaction requires a LI.FI Step object')
+    }
+
+    return this.post('/advanced/stepTransaction', step)
+  }
+
+  async executeRoute(params) {
+    if (!params || typeof params !== 'object') {
+      throw new Error('Missing execute payload')
+    }
+
+    const quote = params.quote ?? null
+    const step = params.step ?? null
+
+    if (quote?.transactionRequest) {
+      return {
+        routeId: quote.id ?? null,
+        transactionRequest: quote.transactionRequest,
+        broadcasted: false,
+        requiresSigner: true,
+        note: 'LI.FI /quote returned transactionRequest. Sign and broadcast this transaction with a wallet/executor to perform real execution.',
+      }
+    }
+
+    if (step) {
+      return this.getStepTransaction(step)
+    }
+
+    if (quote) {
+      return this.getStepTransaction(quote)
+    }
+
+    return this.getStepTransaction(params)
   }
 }
 

@@ -19,4 +19,5 @@ export const LifecycleState = {
   POLLING: 'polling',
   COMPLETED: 'completed',
   FAILED: 'failed',
+  DONE: 'done',
 }

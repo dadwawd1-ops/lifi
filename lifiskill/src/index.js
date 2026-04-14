@@ -9,6 +9,7 @@ export { runBridgeAssetsWorkflow } from './workflow-bridge-assets.js'
 export { createAudit, pushAuditEvent, finalizeAudit } from './audit.js'
 export { runSwapThenBridgeWorkflow } from './workflow-swap-then-bridge.js'
 export { runSafeLargeTransferReviewWorkflow } from './workflow-safe-large-transfer-review.js'
+export { depositToVault } from './vault-deposit.js'
 export { createWorkflowRuntime } from './workflow-runtime.js'
 export { createRuntimeServer } from './runtime-server.js'
 export { resolveFeatureFlags, isSkillDisabled, assertSkillEnabled, isQuoteOnlyEnabled } from './feature-flags.js'
@@ -21,6 +22,7 @@ export {
   validateWorkflowInput,
   withRequoteLoop,
 } from './workflow-helpers.js'
+export { runBatch } from './orchestrator.js'
 export {
   createGrayReleaseConfig,
   getSkillTrafficPercent,
